@@ -21,10 +21,6 @@ x-default-planargs-volumes: &default-planargs-volumes
     source: /usr/share/nvidia/nvoptix.bin
     target: /usr/share/nvidia/nvoptix.bin
     read_only: true
-  - type: bind
-    source: ./nvidia_icd_glx.json
-    target: /etc/vulkan/icd.d/nvidia_icd_glx.json
-    read_only: true
 
 x-default-planargs-environment: &default-planargs-environment
   OMNI_KIT_ALLOW_ROOT: "1"
