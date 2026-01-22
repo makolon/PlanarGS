@@ -18,6 +18,7 @@ from scene.ply_loader import SceneInfo, CameraInfo, getNerfppNorm, storePly, fet
 import numpy as np
 import json
 import torch
+from typing import Optional
 
 
 def load_poses(pose_path, num):
@@ -85,14 +86,46 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, path):
 
 
 def readColmapSceneInfo(path, eval, llffhold=8):  
-    try:
-        cameras_extrinsic_file = os.path.join(path, "sparse", "images.bin")
-        cameras_intrinsic_file = os.path.join(path, "sparse", "cameras.bin")
+    def _find_model_dir(sparse_root: str) -> Optional[str]:
+        """Return a colmap model dir that contains images.(bin|txt).
+        Priority: subdirs with images.bin > subdirs with images.txt > root with bin/txt."""
+
+        def has_bin(dirpath: str) -> bool:
+            return os.path.isfile(os.path.join(dirpath, "images.bin"))
+
+        def has_txt(dirpath: str) -> bool:
+            return os.path.isfile(os.path.join(dirpath, "images.txt"))
+
+        subdirs = [os.path.join(sparse_root, d) for d in os.listdir(sparse_root)
+                   if os.path.isdir(os.path.join(sparse_root, d))]
+        def sort_key(p):
+            name = os.path.basename(p)
+            return (0, int(name)) if name.isdigit() else (1, name)
+        subdirs = sorted(subdirs, key=sort_key)
+
+        for d in subdirs:
+            if has_bin(d):
+                return d
+        for d in subdirs:
+            if has_txt(d):
+                return d
+        if has_bin(sparse_root) or has_txt(sparse_root):
+            return sparse_root
+        return None
+
+    sparse_root = os.path.join(path, "sparse")
+    model_dir = _find_model_dir(sparse_root)
+    assert model_dir is not None, f"Could not find COLMAP model under {sparse_root}"
+
+    xyz = rgb = points3d = None
+    if os.path.isfile(os.path.join(model_dir, "images.bin")):
+        cameras_extrinsic_file = os.path.join(model_dir, "images.bin")
+        cameras_intrinsic_file = os.path.join(model_dir, "cameras.bin")
         cam_extrinsics = read_extrinsics_binary(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_binary(cameras_intrinsic_file)
-    except:
-        cameras_extrinsic_file = os.path.join(path, "sparse", "images.txt")
-        cameras_intrinsic_file = os.path.join(path, "sparse", "cameras.txt")
+    else:
+        cameras_extrinsic_file = os.path.join(model_dir, "images.txt")
+        cameras_intrinsic_file = os.path.join(model_dir, "cameras.txt")
         cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
             
@@ -117,19 +150,27 @@ def readColmapSceneInfo(path, eval, llffhold=8):
         train_list = [idx for idx in range(N)]
 
 
-    ply_path = os.path.join(path, "sparse/points3D.ply")
-    bin_path = os.path.join(path, "sparse/points3D.bin")
+    ply_path = os.path.join(model_dir, "points3D.ply")
+    bin_path = os.path.join(model_dir, "points3D.bin")
+    pcd = None
     if os.path.exists(bin_path):
         xyz, rgb, points3d = read_points3D_binary(bin_path)
-        print("Converting point3d.bin to .ply.")
-        storePly(ply_path, xyz, rgb)
+        try:
+            print("Converting point3d.bin to .ply.")
+            storePly(ply_path, xyz, rgb)
+        except Exception as e:
+            print(f"Warning: failed to store ply at {ply_path}: {e}")
+        # Build in-memory point cloud even if ply write fails
+        from common_utils.graphics_utils import BasicPointCloud
+        pcd = BasicPointCloud(points=xyz, colors=rgb / 255.0 if rgb is not None else None, normals=None, errors=None)
     else:
         points3d = None
 
-    try:
-        pcd = fetchPly(ply_path)
-    except:
-        pcd = None
+    if pcd is None:
+        try:
+            pcd = fetchPly(ply_path)
+        except Exception as e:
+            print(f"Warning: failed to load ply at {ply_path}: {e}")
     
     cam_infos_unsorted = readColmapCameras(cam_extrinsics=cam_extrinsics, cam_intrinsics=cam_intrinsics, path=path)
     cam_infos = sorted(cam_infos_unsorted.copy(), key = lambda x : x.image_name)  

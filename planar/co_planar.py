@@ -18,7 +18,6 @@ def co_planar(depth, segmask, inv_K):
          
     return plane_depth
 
-        
 
 def ProjectDepth(points3d, segmask, inv_K, depth, coords):
     '''

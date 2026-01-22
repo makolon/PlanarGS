@@ -21,6 +21,7 @@ from tqdm import tqdm
 from common_utils.loss_utils import psnr
 from argparse import ArgumentParser
 
+
 def readImages(renders_dir, gt_dir):
     renders = []
     gts = []
@@ -73,9 +74,9 @@ def evaluate(model_paths):
                     psnrs.append(psnr(renders[idx], gts[idx]))
                     lpipss.append(lpips(renders[idx], gts[idx], net_type='vgg'))
 
-                print("  SSIM : {:>12.7f}".format(torch.tensor(ssims).mean(), ".5"))
-                print("  PSNR : {:>12.7f}".format(torch.tensor(psnrs).mean(), ".5"))
-                print("  LPIPS: {:>12.7f}".format(torch.tensor(lpipss).mean(), ".5"))
+                print("SSIM : {:>12.7f}".format(torch.tensor(ssims).mean(), ".5"))
+                print("PSNR : {:>12.7f}".format(torch.tensor(psnrs).mean(), ".5"))
+                print("LPIPS: {:>12.7f}".format(torch.tensor(lpipss).mean(), ".5"))
                 print("")
 
                 full_dict[scene_dir][method].update({"SSIM": torch.tensor(ssims).mean().item(),
@@ -91,6 +92,7 @@ def evaluate(model_paths):
                 json.dump(per_view_dict[scene_dir], fp, indent=True)
         except:
             print("Unable to compute metrics for model", scene_dir)
+
 
 if __name__ == "__main__":
     # Set up command line argument parser

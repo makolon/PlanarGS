@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "planargs"
+version = "0.0.0"
+description = "PlanarGS: High-Fidelity Indoor 3D Gaussian Splatting guided by planar priors"
+readme = "README.md"
+requires-python = ">=3.11,<3.12"
+license = "MIT"
+authors = [{ name = "SJTU-ViSYS-team" }]
+dependencies = [
+  "torch==2.4.1",
+  "torchvision==0.19.1",
+  "torchaudio==2.4.1",
+  "roma",
+  "gradio",
+  "matplotlib",
+  "opencv-python",
+  "scipy",
+  "einops",
+  "trimesh",
+  "tensorboard",
+  "plyfile",
+  "open3d",
+  "lpips",
+  "transformers",
+  "yapf",
+  "pycocotools",
+  "timm",
+  "simple-knn",
+  "pytorch3d",
+  "diff-plane-rasterization"
+]
+
+[tool.uv.pip]
+extra-index-url = ["https://download.pytorch.org/whl/cu121"]
+
+[tool.uv.sources]
+simple-knn = { path = "submodules/simple-knn", editable = true }
+pytorch3d = { path = "submodules/pytorch3d", editable = true }
+diff-plane-rasterization = { path = "submodules/diff-plane-rasterization" }
+
+[tool.setuptools.packages.find]
+include = [
+  "planar",
+  "arguments",
+  "common_utils",
+  "gaussian_renderer",
+  "lpipsPyTorch"
+]
+
+[tool.uv.extra-build-dependencies]
+simple-knn = ["torch==2.4.1"]
+pytorch3d = ["torch==2.4.1"]
+diff-plane-rasterization = ["torch==2.4.1"]

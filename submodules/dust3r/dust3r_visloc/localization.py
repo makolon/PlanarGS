@@ -26,7 +26,8 @@ try:
         HAS_PYCOLMAP = True
 except Exception as e:
     HAS_PYCOLMAP = False
-    
+
+
 def run_pnp(pts2D, pts3D, K, distortion = None, mode='cv2', reprojectionError=5, img_size = None):
     """
     use OPENCV model for distortion (4 values)

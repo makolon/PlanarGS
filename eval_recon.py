@@ -121,8 +121,8 @@ def evaluate_recon_metric(model, prp, method, custom_mesh_path=None):
     print(">>> Step 4: Masking Outliers")
     # Exclude points outside the ground-truth bounding box.
     mesh_rec = mask_mesh(mesh_gt, mesh_rec, model.model_path, prp.maskmesh_thresh)
-    mesh_rec.export(os.path.join(output_dir, f"mask_mesh.ply"))
-    mesh_gt.export(os.path.join(output_dir, f"gt_mesh.ply"))
+    mesh_rec.export(os.path.join(output_dir, "mask_mesh.ply"))
+    mesh_gt.export(os.path.join(output_dir, "gt_mesh.ply"))
 
     print(">>> Step 5: Calculating Metrics")
     rec_pc = trimesh.sample.sample_surface(mesh_rec, prp.mesh_sample)

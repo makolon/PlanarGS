@@ -49,6 +49,9 @@ def NormalSplit(masks, pred_phrases, boxes_filt, normal, cluster, camdebug_folde
     """
     masks: torch.Tensor, shape: [num_masks, 1, height, width]
     """
+    if masks.numel() == 0 or masks.shape[0] == 0:
+        return masks, pred_phrases, boxes_filt
+
     if masks.shape[0] != len(pred_phrases):
         print("error! Masks num not equal to phrases num.")
 
@@ -81,6 +84,10 @@ def NormalSplit(masks, pred_phrases, boxes_filt, normal, cluster, camdebug_folde
             boxes.append(boxes_filt[i])
 
     new_masks, new_pred, boxes = adjust_masks(new_masks, new_pred, boxes)
+    if len(new_masks) == 0:
+        # Fallback: keep original masks to avoid empty tensor errors downstream.
+        return masks, pred_phrases, boxes_filt
+
     new_masks = torch.stack(new_masks).unsqueeze(1).bool()
 
     return new_masks, new_pred, boxes

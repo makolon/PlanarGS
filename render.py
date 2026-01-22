@@ -107,7 +107,7 @@ def render_sets(dataset : ModelParams, iteration : int, pipeline : PipelineParam
         if not skip_train:
             render_set(dataset.model_path, "train", scene.loaded_iter, scene.getTrainCameras(), 
                        gaussians, pipeline, background, max_depth=max_depth, volume=volume)
-            print(f"extract_triangle_mesh")
+            print("extract_triangle_mesh")
             mesh = volume.extract_triangle_mesh()
 
             path = os.path.join(dataset.model_path, "mesh")

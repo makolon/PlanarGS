@@ -26,7 +26,7 @@ def GroupFiles(data_dir, output_dir, ckpt, group_size, vis):
         os.makedirs(group_folder, exist_ok=True)
         DUSt3R(data_dir, group_folder, ckpt, group, vis)  # Set vis=True to save the reconstructed dense point cloud from DUSt3R.
 
-    print(f"Finish depth predicting.")
+    print("Finish depth predicting.")
 
 
 def GeomPrior(model, prep, group_size, vis, skip_model, skip_align):

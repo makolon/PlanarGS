@@ -65,6 +65,7 @@ def LP3(model, prp, text_prompts, vis, device="cuda"):   # Set vis=True to visua
     
     cam_infos = scene_info.train_cameras
     add_previous = False
+    previous_cam = None
     
     for cam in tqdm(cam_infos, desc="Processing cameras"):
         file_path = os.path.join(cam.path, "images", cam.image_name[0] + cam.image_name[1])

@@ -1,5 +1,8 @@
 import numpy as np
-import os,sys,json,cv2
+import os
+import sys
+import json
+import cv2
 import open3d as o3d
 import torch
 import trimesh
@@ -7,6 +10,7 @@ from argparse import ArgumentParser
 from arguments import ModelParams, PriorParams
 from planar.cull_mesh import cull_mesh
 from scene.colmap_loader import read_extrinsics_binary, qvec2rotmat, read_extrinsics_text, read_points3D_binary
+
 
 def o3d_icp_alignment(source_mesh_trimesh, target_mesh_trimesh, threshold, max_iter=2000):
     """
@@ -47,6 +51,7 @@ def o3d_icp_alignment(source_mesh_trimesh, target_mesh_trimesh, threshold, max_i
         o3d.pipelines.registration.ICPConvergenceCriteria(max_iteration=max_iter)
         )
     return reg_p2p.transformation
+
 
 def select_reliable_reference_images(images_dict, points3D_array, top_k=5):
     """
@@ -153,6 +158,7 @@ def compute_alignment_scannetpp(colmap_path, model_path, gt_data_path):
                 final_transform = T_cam2gt_world @ T_rec2cam
                 return final_transform, avg_scale
 
+
 def compute_alignment_replica(colmap_path, model_path, gt_data_path):
     """
     Computes coarse alignment for the Replica dataset.
@@ -208,6 +214,7 @@ def compute_alignment_replica(colmap_path, model_path, gt_data_path):
         final_transform = T_cam2world_gt @ T_rec2cam
         return final_transform, avg_scale
 
+
 def compute_alignment_mushroom(colmap_path, model_path, gt_data_path):
     """
     Computes coarse alignment for the Mushroom iPhone dataset.
@@ -262,6 +269,7 @@ def compute_alignment_mushroom(colmap_path, model_path, gt_data_path):
                 T_rec2cam[:3,3]*= avg_scale        
                 final_transform = T_colmapgt_to_gt @ T_cam2colmapgt @ T_rec2cam
                 return final_transform, avg_scale
+
 
 def run_preprocessing_pipeline(dataset_type, model, gt_data_path):
     """
@@ -350,6 +358,7 @@ def run_preprocessing_pipeline(dataset_type, model, gt_data_path):
     np.savez(output_path, **align_params_dict)
     
     print(f"Preprocessing Done. Params saved to: {output_path}")
+
 
 if __name__ == '__main__':
     parser = ArgumentParser(description="Pre-process alignment parameters (scale & transform) for mesh evaluation")
