@@ -55,7 +55,7 @@ def build_parser():
     parser.add_argument("--save_iterations", nargs="+", type=int,
                         default=[7000, 14000, 20000, 30000])
     parser.add_argument("--checkpoint_iterations", nargs="+", type=int,
-                        default=[6999, 13999, 19999])
+                        default=[6999, 13999, 19999, 29999])
     parser.add_argument("--start_checkpoint", type=str, default=None)
     parser.add_argument("--detect_anomaly", action="store_true")
     parser.add_argument("--quiet", action="store_true")
