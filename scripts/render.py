@@ -1,21 +1,21 @@
 # adapted from https://github.com/zju3dv/PGSR
 
 import torch
-from scene import Scene
+from planargs.scene import Scene
 import os
 from tqdm import tqdm
 from os import makedirs
-from gaussian_renderer import render
+from planargs.gaussian_renderer import render
 import torchvision
-from common_utils.general_utils import safe_state
+from planargs.common_utils.general_utils import safe_state
 from argparse import ArgumentParser
-from arguments import ModelParams, PipelineParams, PriorParams, get_combined_args
-from gaussian_renderer import GaussianModel
+from planargs.arguments import ModelParams, PipelineParams, PriorParams, get_combined_args
+from planargs.gaussian_renderer import GaussianModel
 import numpy as np
 import cv2
 import open3d as o3d
 import copy
-from planar.visualize import visualDepth, visualNorm
+from planargs.planar.visualize import visualDepth, visualNorm
 
 
 # Clean up isolated small pieces in the mesh.

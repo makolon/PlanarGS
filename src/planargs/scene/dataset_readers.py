@@ -11,13 +11,15 @@
 
 import os
 import sys
-from scene.colmap_loader import read_extrinsics_text, read_intrinsics_text, qvec2rotmat, \
-    read_extrinsics_binary, read_intrinsics_binary, read_points3D_binary
-from common_utils.graphics_utils import focal2fov
-from scene.ply_loader import SceneInfo, CameraInfo, getNerfppNorm, storePly, fetchPly
-import numpy as np
 import json
+
+import numpy as np
 import torch
+
+from planargs.scene.colmap_loader import read_extrinsics_text, read_intrinsics_text, qvec2rotmat, \
+    read_extrinsics_binary, read_intrinsics_binary, read_points3D_binary
+from planargs.common_utils.graphics_utils import focal2fov
+from planargs.scene.ply_loader import SceneInfo, CameraInfo, getNerfppNorm, storePly, fetchPly
 
 
 def load_poses(pose_path, num):
@@ -86,13 +88,13 @@ def readColmapCameras(cam_extrinsics, cam_intrinsics, path):
 
 def readColmapSceneInfo(path, eval, llffhold=8):  
     try:
-        cameras_extrinsic_file = os.path.join(path, "sparse", "images.bin")
-        cameras_intrinsic_file = os.path.join(path, "sparse", "cameras.bin")
+        cameras_extrinsic_file = os.path.join(path, "sparse", "0", "images.bin")
+        cameras_intrinsic_file = os.path.join(path, "sparse", "0", "cameras.bin")
         cam_extrinsics = read_extrinsics_binary(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_binary(cameras_intrinsic_file)
     except:
-        cameras_extrinsic_file = os.path.join(path, "sparse", "images.txt")
-        cameras_intrinsic_file = os.path.join(path, "sparse", "cameras.txt")
+        cameras_extrinsic_file = os.path.join(path, "sparse", "text", "images.txt")
+        cameras_intrinsic_file = os.path.join(path, "sparse", "text", "cameras.txt")
         cam_extrinsics = read_extrinsics_text(cameras_extrinsic_file)
         cam_intrinsics = read_intrinsics_text(cameras_intrinsic_file)
             
@@ -115,7 +117,6 @@ def readColmapSceneInfo(path, eval, llffhold=8):
             test_list = [idx for idx in range(N) if idx % llffhold == 0]
     else:
         train_list = [idx for idx in range(N)]
-
 
     ply_path = os.path.join(path, "sparse/points3D.ply")
     bin_path = os.path.join(path, "sparse/points3D.bin")

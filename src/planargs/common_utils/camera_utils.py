@@ -9,12 +9,16 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-from scene.cameras import Camera
-import numpy as np
-from common_utils.graphics_utils import fov2focal
 import sys
 
+import numpy as np
+
+from planargs.common_utils.graphics_utils import fov2focal
+from planargs.scene.cameras import Camera
+
+
 WARNED = False
+
 
 def loadCam(args, params, id, cam_info, resolution_scale):
     orig_w, orig_h = cam_info.size

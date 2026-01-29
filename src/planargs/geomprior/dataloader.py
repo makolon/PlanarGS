@@ -1,7 +1,10 @@
 import os
 import json
+
 import numpy as np
-from geomprior.regreader_utils import LoadGroupDepth
+
+from planargs.geomprior.regreader_utils import LoadGroupDepth
+
 
 def clamp(x, min_v, max_v):
     return max(min_v, min(x, max_v))
@@ -93,8 +96,3 @@ def GroupAlign(prep, cam_infos, points3d, geomprior_path, vis):
             json.dump(params, f, indent=4)
 
     SaveDepthInfo(prep, all_depthinfo, geomprior_path)
-
-
-
-        
-            

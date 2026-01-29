@@ -9,13 +9,16 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import numpy as np
 import collections
 import struct
 from dataclasses import dataclass
 
+import numpy as np
+
+
 CameraModel = collections.namedtuple(
     "CameraModel", ["model_id", "model_name", "num_params"])
+
 
 @dataclass
 class Camera:
@@ -24,6 +27,7 @@ class Camera:
     width: int
     height: int
     params: np.array
+
 
 @dataclass
 class BaseImage:
@@ -35,8 +39,10 @@ class BaseImage:
     xys: np.array
     point3D_ids: np.array
 
+
 Point3D = collections.namedtuple(
-    "Point3D", ["id", "xyz", "rgb", "error", "image_ids", "point2D_idxs"])
+    "Point3D", ["id", "xyz", "rgb", "error", "image_ids", "point2D_idxs"]
+)
 CAMERA_MODELS = {
     CameraModel(model_id=0, model_name="SIMPLE_PINHOLE", num_params=3),
     CameraModel(model_id=1, model_name="PINHOLE", num_params=4),
@@ -68,6 +74,7 @@ def qvec2rotmat(qvec):
          2 * qvec[2] * qvec[3] + 2 * qvec[0] * qvec[1],
          1 - 2 * qvec[1]**2 - 2 * qvec[2]**2]])
 
+
 def rotmat2qvec(R):
     Rxx, Ryx, Rzx, Rxy, Ryy, Rzy, Rxz, Ryz, Rzz = R.flat
     K = np.array([
@@ -81,9 +88,11 @@ def rotmat2qvec(R):
         qvec *= -1
     return qvec
 
+
 class Image(BaseImage):
     def qvec2rotmat(self):
         return qvec2rotmat(self.qvec)
+
 
 def read_next_bytes(fid, num_bytes, format_char_sequence, endian_character="<"):
     """Read and unpack the next bytes from a binary file.
@@ -95,6 +104,7 @@ def read_next_bytes(fid, num_bytes, format_char_sequence, endian_character="<"):
     """
     data = fid.read(num_bytes)
     return struct.unpack(endian_character + format_char_sequence, data)
+
 
 def read_points3D_text(path):
     """
@@ -114,7 +124,6 @@ def read_points3D_text(path):
             line = line.strip()
             if len(line) > 0 and line[0] != "#":
                 num_points += 1
-
 
     xyzs = np.empty((num_points, 3))
     rgbs = np.empty((num_points, 3))

@@ -11,7 +11,13 @@ import matplotlib.pyplot as pl
 pl.ion()
 
 import sys
-sys.path.append(os.path.join(os.getcwd(), "submodules/dust3r"))
+from pathlib import Path
+
+for parent in Path(__file__).resolve().parents:
+    if (parent / "submodules" / "dust3r").is_dir():
+        _REPO_ROOT = parent
+        break
+sys.path.insert(0, str(_REPO_ROOT))
 
 from submodules.dust3r.dust3r.inference import inference
 from submodules.dust3r.dust3r.model import AsymmetricCroCo3DStereo

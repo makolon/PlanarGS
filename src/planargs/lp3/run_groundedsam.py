@@ -1,10 +1,12 @@
-import torch
-from PIL import Image
-import cv2
 import sys
 import os
+
 sys.path.append(os.path.join(os.getcwd(), "submodules/groundedsam/GroundingDINO"))
 sys.path.append(os.path.join(os.getcwd(), "submodules/groundedsam/segment_anything"))
+
+import torch
+import cv2
+from PIL import Image
 
 # Grounding DINO
 import submodules.groundedsam.GroundingDINO.groundingdino.datasets.transforms as T

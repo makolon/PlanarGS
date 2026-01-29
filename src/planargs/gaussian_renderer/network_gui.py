@@ -9,11 +9,13 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import torch
 import traceback
 import socket
 import json
-from scene.cameras import MiniCam
+
+import torch
+
+from planargs.scene.cameras import MiniCam
 
 host = "127.0.0.1"
 port = 6009
@@ -23,6 +25,7 @@ addr = None
 
 listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+
 def init(wish_host, wish_port):
     global host, port, listener
     host = wish_host
@@ -30,6 +33,7 @@ def init(wish_host, wish_port):
     listener.bind((host, port))
     listener.listen()
     listener.settimeout(0)
+
 
 def try_connect():
     global conn, addr, listener
@@ -39,7 +43,8 @@ def try_connect():
         conn.settimeout(None)
     except Exception as inst:
         pass
-            
+
+
 def read():
     global conn
     messageLength = conn.recv(4)
@@ -47,12 +52,14 @@ def read():
     message = conn.recv(messageLength)
     return json.loads(message.decode("utf-8"))
 
+
 def send(message_bytes, verify):
     global conn
-    if message_bytes != None:
+    if message_bytes is not None:
         conn.sendall(message_bytes)
     conn.sendall(len(verify).to_bytes(4, 'little'))
     conn.sendall(bytes(verify, 'ascii'))
+
 
 def receive():
     message = read()

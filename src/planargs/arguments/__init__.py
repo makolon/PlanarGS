@@ -9,12 +9,14 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-from argparse import ArgumentParser, Namespace
 import sys
 import os
+from argparse import ArgumentParser, Namespace
+
 
 class GroupParams:
     pass
+
 
 class ParamGroup:
     def __init__(self, parser: ArgumentParser, name : str, fill_none = False):
@@ -27,12 +29,12 @@ class ParamGroup:
             t = type(value)
             value = value if not fill_none else None 
             if shorthand:
-                if t == bool:
+                if t is bool:
                     group.add_argument("--" + key, ("-" + key[0:1]), default=value, action="store_true")
                 else:
                     group.add_argument("--" + key, ("-" + key[0:1]), default=value, type=t)
             else:
-                if t == bool:
+                if t is bool:
                     group.add_argument("--" + key, default=value, action="store_true")
                 else:
                     group.add_argument("--" + key, default=value, type=t)
@@ -61,6 +63,7 @@ class ModelParams(ParamGroup):
         g = super().extract(args)
         g.source_path = os.path.abspath(g.source_path)
         return g
+
 
 class PipelineParams(ParamGroup):
     def __init__(self, parser):
@@ -111,9 +114,11 @@ class OptimizationParams(ParamGroup):
 
 class PriorParams(ParamGroup):
     def __init__(self, parser):
-        self.ckpt_mv = "ckpt/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth"
-        self.ckpt_det = "ckpt/groundingdino_swint_ogc.pth"
-        self.ckpt_seg = "ckpt/sam_vit_h_4b8939.pth"
+        # Get the absolute path to the ckpt directory
+        _ckpt_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "ckpt")
+        self.ckpt_mv = os.path.join(_ckpt_dir, "DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth")
+        self.ckpt_det = os.path.join(_ckpt_dir, "groundingdino_swint_ogc.pth")
+        self.ckpt_seg = os.path.join(_ckpt_dir, "sam_vit_h_4b8939.pth")
 
         self.visdebug = False
         self.prune_ratio = 0.001
@@ -150,13 +155,13 @@ def get_combined_args(parser : ArgumentParser):
         with open(cfgfilepath) as cfg_file:
             print("Config file found: {}".format(cfgfilepath))
             cfgfile_string = cfg_file.read()
-    except TypeError:
-        print("Config file not found at")
+    except (TypeError, FileNotFoundError):
+        print("Config file not found at", cfgfilepath if 'cfgfilepath' in locals() else "unknown path")
         pass
     args_cfgfile = eval(cfgfile_string)
 
     merged_dict = vars(args_cfgfile).copy()
     for k,v in vars(args_cmdline).items():
-        if v != None:
+        if v is not None:
             merged_dict[k] = v
     return Namespace(**merged_dict)

@@ -1,15 +1,17 @@
-import numpy as np
 import os
 import sys
 import json
+
 import cv2
+import numpy as np
 import open3d as o3d
 import torch
 import trimesh
 from argparse import ArgumentParser
-from arguments import ModelParams, PriorParams
-from planar.cull_mesh import cull_mesh
-from scene.colmap_loader import read_extrinsics_binary, qvec2rotmat, read_extrinsics_text, read_points3D_binary
+
+from planargs.arguments import ModelParams, PriorParams
+from planargs.planar.cull_mesh import cull_mesh
+from planargs.scene.colmap_loader import read_extrinsics_binary, qvec2rotmat, read_extrinsics_text, read_points3D_binary
 
 
 def o3d_icp_alignment(source_mesh_trimesh, target_mesh_trimesh, threshold, max_iter=2000):
@@ -81,6 +83,7 @@ def select_reliable_reference_images(images_dict, points3D_array, top_k=5):
     image_scores.sort(key=lambda x: x[0])
     topk_images = [item[1] for item in image_scores[:top_k]]
     return topk_images
+
 
 def compute_alignment_scannetpp(colmap_path, model_path, gt_data_path):
     """
@@ -335,7 +338,6 @@ def run_preprocessing_pipeline(dataset_type, model, gt_data_path):
     align_params_dict['obb2aabb_transform'] = obb2aabb_transform
     # Calculate Mesh size to dynamically set ICP thresholds
     scene_size = np.linalg.norm(mesh_gt.bounding_box_oriented.extents)
-
 
     print(">>> Step 4: ICP Refinement")
     # Two-stage ICP: Coarse -> Fine

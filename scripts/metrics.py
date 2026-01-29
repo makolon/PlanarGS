@@ -14,11 +14,11 @@ import os
 from PIL import Image
 import torch
 import torchvision.transforms.functional as tf
-from common_utils.loss_utils import ssim
-from lpipsPyTorch import lpips
+from planargs.common_utils.loss_utils import ssim
+from planargs.lpipsPyTorch import lpips
 import json
 from tqdm import tqdm
-from common_utils.loss_utils import psnr
+from planargs.common_utils.loss_utils import psnr
 from argparse import ArgumentParser
 
 

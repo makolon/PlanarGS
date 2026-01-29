@@ -9,22 +9,22 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import torch
-import numpy as np
-from common_utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation
-from torch import nn
 import os
+import numpy as np
+import torch
+from torch import nn
 from plyfile import PlyData, PlyElement
-from common_utils.sh_utils import RGB2SH
-from simple_knn._C import distCUDA2
-from common_utils.graphics_utils import BasicPointCloud, Depth2Pointscam
-from common_utils.general_utils import strip_symmetric, build_scaling_rotation
 from pytorch3d.transforms import quaternion_to_matrix
-from planar.densify_points import PlaneMaskGS, InitialPlaneSeg, SegPoints, find_nearest
+from simple_knn._C import distCUDA2
+
+from planargs.common_utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation
+from planargs.common_utils.sh_utils import RGB2SH
+from planargs.common_utils.graphics_utils import BasicPointCloud, Depth2Pointscam
+from planargs.common_utils.general_utils import strip_symmetric, build_scaling_rotation
+from planargs.planar.densify_points import PlaneMaskGS, InitialPlaneSeg, SegPoints, find_nearest
 
 
 class GaussianModel:
-
     def setup_functions(self):
         def build_covariance_from_scaling_rotation(scaling, scaling_modifier, rotation):
             L = build_scaling_rotation(scaling_modifier * scaling, rotation)
@@ -534,7 +534,6 @@ class GaussianModel:
             self.densification_postfix(new_xyz, new_knn_f, new_features_dc, new_features_rest, new_opacity, new_scaling, new_rotation)
             torch.cuda.empty_cache()  
 
-
     def densify_and_prune(self, max_grad, abs_max_grad, min_opacity, extent, max_screen_size):
         grads = self.xyz_gradient_accum / self.denom   
         grads_abs = self.xyz_gradient_accum_abs / self.denom_abs   
@@ -552,7 +551,6 @@ class GaussianModel:
             big_points_ws = self.get_scaling.max(dim=1).values > 0.1 * extent
             prune_mask = torch.logical_or(torch.logical_or(prune_mask, big_points_vs), big_points_ws)
         self.prune_points(prune_mask)
-        # print(f"all points {self._xyz.shape[0]}")
         torch.cuda.empty_cache()
 
     def add_densification_stats(self, viewspace_point_tensor, viewspace_point_tensor_abs, update_filter):

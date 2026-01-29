@@ -1,6 +1,7 @@
 import torch
-from common_utils.graphics_utils import Depth2Pointscam
-from planar.densify_points import InitialPlaneSeg, SegPoints
+
+from planargs.common_utils.graphics_utils import Depth2Pointscam
+from planargs.planar.densify_points import InitialPlaneSeg, SegPoints
 
 
 def co_planar(depth, segmask, inv_K):
@@ -18,7 +19,6 @@ def co_planar(depth, segmask, inv_K):
          
     return plane_depth
 
-        
 
 def ProjectDepth(points3d, segmask, inv_K, depth, coords):
     '''
@@ -36,7 +36,6 @@ def ProjectDepth(points3d, segmask, inv_K, depth, coords):
     '''
     seg_mask, seg_num, seg_pnum = InitialPlaneSeg(segmask)
     plane_depth = torch.zeros((1, seg_mask.shape[1])).cuda()  
-    adjust_mask = torch.zeros((1, seg_mask.shape[1]), dtype = torch.int).cuda()
     
     for i in range(1, seg_num):
         points_seg, temp_mask = SegPoints(i, seg_pnum, seg_mask, points3d.T)  # 3xk
@@ -60,5 +59,3 @@ def ProjectDepth(points3d, segmask, inv_K, depth, coords):
         plane_depth.scatter_(1, temp_mask, pdepth_seg)
 
     return plane_depth.view(depth.shape[0], depth.shape[1])
-
-

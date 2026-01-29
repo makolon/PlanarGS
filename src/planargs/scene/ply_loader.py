@@ -1,11 +1,12 @@
-
-import numpy as np
-from scene.gaussian_model import BasicPointCloud
 from typing import NamedTuple
 from dataclasses import dataclass
-from common_utils.graphics_utils import getWorld2View2
+
 import numpy as np
 from plyfile import PlyData, PlyElement
+
+from planargs.common_utils.graphics_utils import getWorld2View2
+from planargs.scene.gaussian_model import BasicPointCloud
+
 
 @dataclass
 class CameraInfo:
@@ -59,7 +60,6 @@ def fetchPly(path):
     positions = np.vstack([vertices['x'], vertices['y'], vertices['z']]).T
     colors = np.vstack([vertices['red'], vertices['green'], vertices['blue']]).T / 255.0  if 'red' in vertices else None
     normals = np.vstack([vertices['nx'], vertices['ny'], vertices['nz']]).T  if 'nx' in vertices else None
-    # error_init = np.zeros((normals.shape[0]))
     errors = vertices['xyzerr']/(np.min(vertices['xyzerr'] + 1e-8))  if 'xyzerr' in vertices else None
     pcd = BasicPointCloud(points=positions, colors=colors, normals=normals, errors=errors)
     return pcd

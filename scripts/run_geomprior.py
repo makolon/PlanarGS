@@ -1,12 +1,15 @@
 import os
-from geomprior.run_dust3r import DUSt3R
 from argparse import ArgumentParser
-from arguments import ModelParams, PriorParams
-from geomprior.dataloader import GroupAlign
-from scene.dataset_readers import readColmapSceneInfo
+
+from planargs.geomprior.run_dust3r import DUSt3R
+from planargs.arguments import ModelParams, PriorParams
+from planargs.geomprior.dataloader import GroupAlign
+from planargs.scene.dataset_readers import readColmapSceneInfo
+
 
 def get_numeric_part(filename):
     return int(''.join(filter(str.isdigit, filename)))
+
 
 # Sampling-based grouping is used to ensure that each image group covers the entire scene.
 def GroupFiles(data_dir, output_dir, ckpt, group_size, vis):

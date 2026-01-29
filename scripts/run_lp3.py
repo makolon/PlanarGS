@@ -4,16 +4,16 @@ import numpy as np
 import cv2
 from PIL import Image
 from tqdm import tqdm
-from lp3.mask_refine import BoxSmaller, NormalSplit
-from lp3.box_migrate import AddPreviosBox, FilterMask, LP3Cam
-from scene.dataset_readers import readColmapSceneInfo
-from lp3.run_groundedsam import GroundingDINO, SAM
+from planargs.lp3.mask_refine import BoxSmaller, NormalSplit
+from planargs.lp3.box_migrate import AddPreviosBox, FilterMask, LP3Cam
+from planargs.scene.dataset_readers import readColmapSceneInfo
+from planargs.lp3.run_groundedsam import GroundingDINO, SAM
 from argparse import ArgumentParser
-from arguments import ModelParams, PriorParams
-from scene.cameras import LoadGeomprior
-from common_utils.graphics_utils import get_k
-from lp3.color_cluster import MaskDistance
-from planar.visualize import visualSegmask, visualMask
+from planargs.arguments import ModelParams, PriorParams
+from planargs.scene.cameras import LoadGeomprior
+from planargs.common_utils.graphics_utils import get_k
+from planargs.lp3.color_cluster import MaskDistance
+from planargs.planar.visualize import visualSegmask, visualMask
 
 
 def draw_boxes(image, boxes, labels):

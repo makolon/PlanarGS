@@ -1,16 +1,17 @@
-# adapted from https://github.com/cvg/nice-slam
+import os 
+import sys
+import json
+
 import numpy as np
 import open3d as o3d
 import torch
 import trimesh
 import cv2
-import os 
-import sys
-import json
-from planar.cull_mesh import cull_mesh, mask_mesh
 from argparse import ArgumentParser
-from arguments import ModelParams, PriorParams
 from scipy.spatial import cKDTree as KDTree
+
+from planargs.arguments import ModelParams, PriorParams
+from planargs.planar.cull_mesh import cull_mesh, mask_mesh
 
 
 def completion_ratio(gt_points, rec_points, dist_th): 
@@ -87,7 +88,7 @@ def evaluate_recon_metric(model, prp, method, custom_mesh_path=None):
         transformed_vertices[:, 1] *= -1
         mesh_rec.vertices = o3d.utility.Vector3dVector(transformed_vertices)
         
-    print(f">>> Step 2: Alignment")
+    print(">>> Step 2: Alignment")
     # Align the coordinates of the ground truth and the reconstructed mesh.
     align_params_path = os.path.join(model.source_path, "align_params.npz")
     print(f"    -> Loading alignment params from: {align_params_path}")

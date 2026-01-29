@@ -9,14 +9,17 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
+import os
+import cv2
+import json
+
+import numpy as np
 import torch
 from torch import nn
-import numpy as np
 from PIL import Image
-import os, cv2
-import json
-from common_utils.general_utils import PILtoTorch
-from common_utils.graphics_utils import getWorld2View2, getProjectionMatrix, get_k, ThickenLines
+
+from planargs.common_utils.general_utils import PILtoTorch
+from planargs.common_utils.graphics_utils import getWorld2View2, getProjectionMatrix, get_k, ThickenLines
 
 
 class Camera(nn.Module):
@@ -93,8 +96,6 @@ class Camera(nn.Module):
         self.full_proj_transform = (self.world_view_transform.unsqueeze(0).bmm(self.projection_matrix.unsqueeze(0))).squeeze(0)  #4x4
         self.camera_center = self.world_view_transform.inverse()[3, :3]
 
-        
-    
     def get_rays(self, scale=1.0):
         W, H = int(self.image_width/scale), int(self.image_height/scale)
         ix, iy = torch.meshgrid(

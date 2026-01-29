@@ -1,8 +1,9 @@
-import numpy as np
-import cv2 as cv
-from PIL import Image
 import os
+
+import cv2 as cv
+import numpy as np
 import torch
+from PIL import Image
 
 
 def AlphaImg(bg, over, alpha=0.6):
@@ -105,4 +106,3 @@ def visualSegmask(segmasker, path=None, filename=None, img=None):
         cv.imwrite(fig_path, bg_save)
 
     return bg.permute(2, 0, 1)
-

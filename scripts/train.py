@@ -16,13 +16,13 @@ import os
 from random import randint
 from tqdm import tqdm
 from argparse import ArgumentParser
-from scene import Scene, GaussianModel
-from gaussian_renderer import render
-from common_utils.general_utils import safe_state
-from common_utils.loss_utils import l1_loss, l2_loss, ssim
-from planar.co_planar import co_planar
-from arguments import ModelParams, PipelineParams, OptimizationParams, PriorParams
-from planar.training_report import prepare_output_and_logger, training_report
+from planargs.scene import Scene, GaussianModel
+from planargs.gaussian_renderer import render
+from planargs.common_utils.general_utils import safe_state
+from planargs.common_utils.loss_utils import l1_loss, l2_loss, ssim
+from planargs.planar.co_planar import co_planar
+from planargs.arguments import ModelParams, PipelineParams, OptimizationParams, PriorParams
+from planargs.planar.training_report import prepare_output_and_logger, training_report
 
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 os.environ['TORCH_USE_CUDA_DSA'] = '1'

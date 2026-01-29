@@ -9,14 +9,17 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import torch
+import random
 import sys
 from datetime import datetime
+
 import numpy as np
-import random
+import torch
+
 
 def inverse_sigmoid(x):
     return torch.log(x/(1-x))
+
 
 def PILtoTorch(pil_image, resolution=None):
     if resolution is None:
@@ -64,6 +67,7 @@ def get_expon_lr_func(
         return delay_rate * log_lerp
     return helper
 
+
 def strip_lowerdiag(L):
     uncertainty = torch.zeros((L.shape[0], 6), dtype=torch.float, device="cuda")
 
@@ -75,8 +79,10 @@ def strip_lowerdiag(L):
     uncertainty[:, 5] = L[:, 2, 2]
     return uncertainty
 
+
 def strip_symmetric(sym):
     return strip_lowerdiag(sym)
+
 
 def build_rotation(r):
     norm = torch.sqrt(r[:,0]*r[:,0] + r[:,1]*r[:,1] + r[:,2]*r[:,2] + r[:,3]*r[:,3])
@@ -101,12 +107,14 @@ def build_rotation(r):
     R[:, 2, 2] = 1 - 2 * (x*x + y*y)
     return R
 
+
 def build_scaling(s):
     L = torch.zeros((s.shape[0], 3, 3), dtype=torch.float, device="cuda")
     L[:,0,0] = s[:,0]
     L[:,1,1] = s[:,1]
     L[:,2,2] = s[:,2]
     return L
+
 
 def build_scaling_rotation(s, r):
     L = torch.zeros((s.shape[0], 3, 3), dtype=torch.float, device="cuda")
@@ -118,6 +126,7 @@ def build_scaling_rotation(s, r):
 
     L = R @ L
     return L
+
 
 def safe_state(silent):
     old_f = sys.stdout
@@ -140,4 +149,3 @@ def safe_state(silent):
     random.seed(0)
     np.random.seed(0)
     torch.manual_seed(0)
-
