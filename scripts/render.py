@@ -20,7 +20,6 @@ from planar.visualize import visualDepth, visualNorm
 
 # Clean up isolated small pieces in the mesh.
 def clean_mesh(mesh, min_len=1000):
-
     with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug) as cm:
         triangle_clusters, cluster_n_triangles, cluster_area = (mesh.cluster_connected_triangles())
     triangle_clusters = np.asarray(triangle_clusters)
