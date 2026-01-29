@@ -17,7 +17,7 @@ import numpy as np
 import torch
 
 from planargs.scene.colmap_loader import read_extrinsics_text, read_intrinsics_text, qvec2rotmat, \
-    read_extrinsics_binary, read_intrinsics_binary, read_points3D_binary
+    read_extrinsics_binary, read_intrinsics_binary, read_points3D_binary, read_points3D_text
 from planargs.common_utils.graphics_utils import focal2fov
 from planargs.scene.ply_loader import SceneInfo, CameraInfo, getNerfppNorm, storePly, fetchPly
 
@@ -120,11 +120,18 @@ def readColmapSceneInfo(path, eval, llffhold=8):
 
     ply_path = os.path.join(path, "sparse/points3D.ply")
     bin_path = os.path.join(path, "sparse/points3D.bin")
+    txt_path = os.path.join(path, "sparse/points3D.txt")
+
     if os.path.exists(bin_path):
         xyz, rgb, points3d = read_points3D_binary(bin_path)
         print("Converting point3d.bin to .ply.")
         storePly(ply_path, xyz, rgb)
+    elif os.path.exists(txt_path):
+        xyz, rgb, points3d = read_points3D_text(txt_path)
+        print("Converting point3d.txt to .ply.")
+        storePly(ply_path, xyz, rgb)
     else:
+        print(f"Warning: No points3D.bin or points3D.txt found in {path}/sparse/")
         points3d = None
 
     try:

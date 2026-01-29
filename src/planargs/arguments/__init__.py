@@ -162,6 +162,7 @@ def get_combined_args(parser : ArgumentParser):
 
     merged_dict = vars(args_cfgfile).copy()
     for k,v in vars(args_cmdline).items():
-        if v is not None:
+        # Always include command-line args, overwriting config file values when not None
+        if v is not None or k not in merged_dict:
             merged_dict[k] = v
     return Namespace(**merged_dict)
