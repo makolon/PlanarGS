@@ -62,6 +62,9 @@ class ModelParams(ParamGroup):
     def extract(self, args):
         g = super().extract(args)
         g.source_path = os.path.abspath(g.source_path)
+        # Ensure data_device has a default value
+        if not hasattr(g, 'data_device') or g.data_device is None:
+            g.data_device = "cuda"
         return g
 
 
