@@ -37,10 +37,7 @@ def loadCam(args, params, id, cam_info, resolution_scale):
             else:
                 global_down = 1
         else:
-            global_down = orig_w / resolution
-
-        scale = float(global_down) * float(resolution_scale)
-        resolution = (int(orig_w / scale), int(orig_h / scale))
+            global_down = orig_w / args.resolution
 
     sys.stdout.write('\r')
     sys.stdout.write("load camera {}".format(id))

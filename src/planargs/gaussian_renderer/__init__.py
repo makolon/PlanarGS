@@ -20,8 +20,16 @@ from planargs.common_utils.sh_utils import eval_sh
 from planargs.common_utils.graphics_utils import NormalFromDepth, RenderDistance
 
 
-def render(viewpoint_camera, pc : GaussianModel, pipe, bg_color : torch.Tensor, scaling_modifier = 1.0, override_color = None, 
-           return_plane = True, return_depth_normal = True):
+def render(
+    viewpoint_camera,
+    pc : GaussianModel,
+    pipe,
+    bg_color : torch.Tensor,
+    scaling_modifier = 1.0,
+    override_color = None,
+    return_plane = True,
+    return_depth_normal = True
+):
     """
     Render the scene. 
     

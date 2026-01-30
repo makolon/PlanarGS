@@ -118,9 +118,9 @@ def readColmapSceneInfo(path, eval, llffhold=8):
     else:
         train_list = [idx for idx in range(N)]
 
-    ply_path = os.path.join(path, "sparse/points3D.ply")
-    bin_path = os.path.join(path, "sparse/points3D.bin")
-    txt_path = os.path.join(path, "sparse/points3D.txt")
+    ply_path = os.path.join(path, "sparse/0/points3D.ply")
+    bin_path = os.path.join(path, "sparse/0/points3D.bin")
+    txt_path = os.path.join(path, "sparse/text/points3D.txt")
 
     if os.path.exists(bin_path):
         xyz, rgb, points3d = read_points3D_binary(bin_path)

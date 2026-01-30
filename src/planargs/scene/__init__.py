@@ -22,7 +22,15 @@ from planargs.scene.gaussian_model import GaussianModel
 class Scene:
     gaussians : GaussianModel
 
-    def __init__(self, args : ModelParams, gaussians : GaussianModel, params: PriorParams, load_iteration=None, shuffle=True, resolution_scales=[1.0]):
+    def __init__(
+        self,
+        args: ModelParams,
+        gaussians: GaussianModel,
+        params: PriorParams,
+        load_iteration=None,
+        shuffle=True,
+        resolution_scales=[1.0]
+    ):
         """
         :param path: Path to colmap scene main folder.
         """
@@ -74,10 +82,14 @@ class Scene:
             self.test_cameras[resolution_scale] = cameraList_from_camInfos(scene_info.test_cameras, resolution_scale, args, params)
 
         if self.loaded_iter:
-            self.gaussians.load_ply(os.path.join(self.model_path,
-                                                           "point_cloud",
-                                                           "iteration_" + str(self.loaded_iter),
-                                                           "point_cloud.ply"))
+            self.gaussians.load_ply(
+                os.path.join(
+                    self.model_path,
+                    "point_cloud",
+                    "iteration_" + str(self.loaded_iter),
+                    "point_cloud.ply"
+                )
+            )
         else:
             self.gaussians.create_from_pcd(scene_info.point_cloud, self.cameras_extent)
 
