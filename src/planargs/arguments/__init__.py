@@ -1,0 +1,168 @@
+#
+# Copyright (C) 2023, Inria
+# GRAPHDECO research group, https://team.inria.fr/graphdeco
+# All rights reserved.
+#
+# This software is free for non-commercial, research and evaluation use 
+# under the terms of the LICENSE.md file.
+#
+# For inquiries contact  george.drettakis@inria.fr
+#
+
+import sys
+import os
+from argparse import ArgumentParser, Namespace
+
+
+class GroupParams:
+    pass
+
+
+class ParamGroup:
+    def __init__(self, parser: ArgumentParser, name : str, fill_none = False):
+        group = parser.add_argument_group(name)
+        for key, value in vars(self).items():
+            shorthand = False
+            if key.startswith("_"):
+                shorthand = True
+                key = key[1:]
+            t = type(value)
+            value = value if not fill_none else None 
+            if shorthand:
+                if t is bool:
+                    group.add_argument("--" + key, ("-" + key[0:1]), default=value, action="store_true")
+                else:
+                    group.add_argument("--" + key, ("-" + key[0:1]), default=value, type=t)
+            else:
+                if t is bool:
+                    group.add_argument("--" + key, default=value, action="store_true")
+                else:
+                    group.add_argument("--" + key, default=value, type=t)
+
+    def extract(self, args):
+        group = GroupParams()
+        for arg in vars(args).items():
+            if arg[0] in vars(self) or ("_" + arg[0]) in vars(self):
+                setattr(group, arg[0], arg[1])
+        return group
+
+
+class ModelParams(ParamGroup): 
+    def __init__(self, parser, sentinel=False):
+        self.sh_degree = 3
+        self._source_path = ""
+        self._model_path = ""
+        self._images = "images"
+        self._white_background = False
+        self.data_device = "cuda"
+        self.eval = False
+        self._resolution = -1
+        super().__init__(parser, "Loading Parameters", sentinel)
+
+    def extract(self, args):
+        g = super().extract(args)
+        g.source_path = os.path.abspath(g.source_path)
+        return g
+
+
+class PipelineParams(ParamGroup):
+    def __init__(self, parser):
+        self.convert_SHs_python = False
+        self.compute_cov3D_python = False
+        self.debug = False
+        super().__init__(parser, "Pipeline Parameters")
+
+
+class OptimizationParams(ParamGroup):
+    def __init__(self, parser):
+        self.iterations = 30_000
+        self.position_lr_init = 0.00016
+        self.position_lr_final = 0.0000016
+        self.position_lr_delay_mult = 0.01
+        self.position_lr_max_steps = 30_000
+        self.feature_lr = 0.0025
+        self.opacity_lr = 0.05
+        self.scaling_lr = 0.005
+        self.rotation_lr = 0.001
+        self.percent_dense = 0.001
+        self.lambda_dssim = 0.2
+        self.lambda_scale = 100.0
+
+        self.densification_interval = 100
+        self.opacity_reset_interval = 3000
+        self.densify_from_iter = 500
+        self.densify_until_iter = 15_000
+        self.densify_grad_threshold = 0.0002
+        
+        self.lambda_dnloss = 0.05  
+        self.dnloss_iteration = 7000  
+        self.lambda_planar = 0.5       
+        self.planar_iteration = 14000   
+        self.lambda_priordepth = 0.05   
+        self.priordepth_iteration = 7000  
+        self.lambda_priornormal = 0.2 
+        self.priornormal_iteration = 20000
+
+        self.opacity_cull_threshold = 0.05   
+        self.densify_abs_grad_threshold = 0.0008
+        self.abs_split_radii2D_threshold = 20
+        self.max_abs_split_points = 0    
+        self.max_all_points = 6000_000
+        self.random_background = False
+        super().__init__(parser, "Optimization Parameters")
+
+
+class PriorParams(ParamGroup):
+    def __init__(self, parser):
+        # Get the absolute path to the ckpt directory
+        _ckpt_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "ckpt")
+        self.ckpt_mv = os.path.join(_ckpt_dir, "DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth")
+        self.ckpt_det = os.path.join(_ckpt_dir, "groundingdino_swint_ogc.pth")
+        self.ckpt_seg = os.path.join(_ckpt_dir, "sam_vit_h_4b8939.pth")
+
+        self.visdebug = False
+        self.prune_ratio = 0.001
+        self.align_loss = 1e-8
+        self.weights_min_thresh = 0.06
+        self.weights_max_thresh = 0.5
+        self.dis_thresh = 0.05
+        self.normal_split = 5
+
+        self.use_weights = True
+        self.use_initdensify = True
+        self.initdensify_num = 50
+        self.planeinit_threshold = 2
+        self.init_random = 20
+        self.conf_thresh = 0.1
+        self.canny_thresh = [50, 150]
+
+        self.maskmesh_thresh = 1.1
+        self.mesh_sample = 200000
+        self.fscore_thresh = 0.05
+        self.vis_dist = 0.05
+        
+        super().__init__(parser, "Prior Parameters")
+
+
+def get_combined_args(parser : ArgumentParser):
+    cmdlne_string = sys.argv[1:]
+    cfgfile_string = "Namespace()"
+    args_cmdline = parser.parse_args(cmdlne_string)
+
+    try:
+        cfgfilepath = os.path.join(args_cmdline.model_path, "cfg_args")
+        print("Looking for config file in", cfgfilepath)
+        with open(cfgfilepath) as cfg_file:
+            print("Config file found: {}".format(cfgfilepath))
+            cfgfile_string = cfg_file.read()
+    except (TypeError, FileNotFoundError):
+        print("Config file not found at", cfgfilepath if 'cfgfilepath' in locals() else "unknown path")
+        pass
+    args_cfgfile = eval(cfgfile_string)
+
+    merged_dict = vars(args_cfgfile).copy()
+    for k,v in vars(args_cmdline).items():
+        # Always include command-line args, overwriting config file values when not None
+        if v is not None or k not in merged_dict:
+            merged_dict[k] = v
+    return Namespace(**merged_dict)

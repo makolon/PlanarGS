@@ -6,9 +6,7 @@ ENV PLANARGS_PATH=${PLANARGS_PATH_ARG}
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     CUDA_HOME=/usr/local/cuda \
-    PATH=/root/.local/bin:$PATH \
-    XDG_RUNTIME_DIR=/tmp/runtime-root \
-    OMNI_KIT_ALLOW_ROOT=1
+    PATH=/root/.local/bin:$PATH
 
 # System deps
 RUN apt-get update && apt-get install -y --no-install-recommends \

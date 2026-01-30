@@ -5,3 +5,6 @@ output
 *.pth
 submodules/groundedsam
 ckpt
+datasets
+submodules
+*.egg-info
