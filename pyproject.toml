@@ -31,7 +31,8 @@ dependencies = [
   "timm",
   "simple-knn",
   "pytorch3d",
-  "diff-plane-rasterization"
+  "diff-plane-rasterization",
+  "viser>=1.0.21",
 ]
 
 [tool.uv.pip]
