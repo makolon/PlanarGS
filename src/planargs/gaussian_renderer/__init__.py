@@ -83,41 +83,44 @@ def render(
 
     return_dict = None
     raster_settings = PlaneGaussianRasterizationSettings(
-            image_height=int(viewpoint_camera.image_height),
-            image_width=int(viewpoint_camera.image_width),
-            tanfovx=tanfovx,
-            tanfovy=tanfovy,
-            bg=bg_color,
-            scale_modifier=scaling_modifier,
-            viewmatrix=viewpoint_camera.world_view_transform,
-            projmatrix=viewpoint_camera.full_proj_transform,
-            sh_degree=pc.active_sh_degree,
-            campos=viewpoint_camera.camera_center,
-            prefiltered=False,
-            render_geo=return_plane,
-            debug=pipe.debug
-        )
+        image_height=int(viewpoint_camera.image_height),
+        image_width=int(viewpoint_camera.image_width),
+        tanfovx=tanfovx,
+        tanfovy=tanfovy,
+        bg=bg_color,
+        scale_modifier=scaling_modifier,
+        viewmatrix=viewpoint_camera.world_view_transform,
+        projmatrix=viewpoint_camera.full_proj_transform,
+        sh_degree=pc.active_sh_degree,
+        campos=viewpoint_camera.camera_center,
+        prefiltered=False,
+        render_geo=return_plane,
+        debug=pipe.debug
+    )
 
     rasterizer = PlaneGaussianRasterizer(raster_settings=raster_settings)
 
     if not return_plane:
         rendered_image, radii, out_observe, _, _ = rasterizer(
-            means3D = means3D,
-            means2D = means2D,
-            means2D_abs = means2D_abs,
-            shs = shs,
-            colors_precomp = colors_precomp,
-            opacities = opacity,
-            scales = scales,
-            rotations = rotations,
-            cov3D_precomp = cov3D_precomp)
+            means3D=means3D,
+            means2D=means2D,
+            means2D_abs=means2D_abs,
+            shs=shs,
+            colors_precomp=colors_precomp,
+            opacities=opacity,
+            scales=scales,
+            rotations=rotations,
+            cov3D_precomp=cov3D_precomp
+        )
         
-        return_dict =  {"render": rendered_image,
-                        "viewspace_points": screenspace_points,
-                        "viewspace_points_abs": screenspace_points_abs,
-                        "visibility_filter" : radii > 0,
-                        "radii": radii,
-                        "out_observe": out_observe}
+        return_dict =  {
+            "render": rendered_image,
+            "viewspace_points": screenspace_points,
+            "viewspace_points_abs": screenspace_points_abs,
+            "visibility_filter" : radii > 0,
+            "radii": radii,
+            "out_observe": out_observe
+        }
         return return_dict
 
     global_normal = pc.get_normal(viewpoint_camera)
@@ -146,16 +149,17 @@ def render(
     rendered_distance = out_all_map[4:5, ]
     plane_depth = plane_depth.squeeze(0)
     
-    return_dict =  {"render": rendered_image,
-                    "viewspace_points": screenspace_points,
-                    "viewspace_points_abs": screenspace_points_abs,
-                    "visibility_filter" : radii > 0,   
-                    "radii": radii,
-                    "out_observe": out_observe,   
-                    "rendered_normal": rendered_normal,
-                    "plane_depth": plane_depth,
-                    "rendered_distance": rendered_distance
-                    }  
+    return_dict =  {
+        "render": rendered_image,
+        "viewspace_points": screenspace_points,
+        "viewspace_points_abs": screenspace_points_abs,
+        "visibility_filter" : radii > 0,
+        "radii": radii,
+        "out_observe": out_observe,
+        "rendered_normal": rendered_normal,
+        "plane_depth": plane_depth,
+        "rendered_distance": rendered_distance
+    }
 
     if return_depth_normal:
         depth_normal = NormalFromDepth(plane_depth, viewpoint_camera.inv_K).permute(2,0,1)  * (rendered_alpha).detach()
