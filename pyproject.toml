@@ -32,7 +32,7 @@ dependencies = [
   "simple-knn",
   "pytorch3d",
   "diff-plane-rasterization",
-  "viser>=1.0.21",
+  "viser",
 ]
 
 [tool.uv.pip]
