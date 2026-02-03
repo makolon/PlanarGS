@@ -39,12 +39,12 @@ dependencies = [
 ]
 
 [tool.uv.pip]
-extra-index-url = ["https://download.pytorch.org/whl/cu121"]
+extra-index-url = ["https://download.pytorch.org/whl/cu128"]
 
 [tool.uv.sources]
 simple-knn = { path = "submodules/simple-knn", editable = true }
 pytorch3d = { path = "submodules/pytorch3d", editable = true }
-diff-plane-rasterization = { path = "submodules/diff-plane-rasterization" }
+diff-plane-rasterization = { path = "submodules/diff-plane-rasterization", editable = true }
 
 [tool.setuptools]
 package-dir = { "" = "src" }
