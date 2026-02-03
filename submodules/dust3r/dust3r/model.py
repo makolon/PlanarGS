@@ -5,8 +5,9 @@
 # DUSt3R model class
 # --------------------------------------------------------
 from copy import deepcopy
-import torch
+import argparse
 import os
+import torch
 from packaging import version
 import huggingface_hub
 
@@ -24,10 +25,32 @@ assert version.parse(hf_version_number) >= version.parse("0.22.0"), ("Outdated h
                                                                      "please reinstall requirements.txt")
 
 
+def _load_checkpoint(model_path):
+    """Load checkpoint with compatibility across PyTorch versions.
+
+    PyTorch 2.6+ defaults to weights_only=True, which can fail for checkpoints that
+    contain argparse.Namespace. We allowlist that type when possible, and fall back
+    to weights_only=False if needed (trusted checkpoints only).
+    """
+    kwargs = {"map_location": "cpu"}
+    try:
+        safe_globals = getattr(torch.serialization, "safe_globals", None)
+        if safe_globals is not None:
+            with safe_globals([argparse.Namespace]):
+                return torch.load(model_path, **kwargs, weights_only=True)
+        return torch.load(model_path, **kwargs, weights_only=True)
+    except TypeError:
+        # Older torch versions may not support weights_only.
+        return torch.load(model_path, **kwargs)
+    except Exception:
+        # Fallback for trusted checkpoints.
+        return torch.load(model_path, **kwargs, weights_only=False)
+
+
 def load_model(model_path, device, verbose=True):
     if verbose:
         print('... loading model from', model_path)
-    ckpt = torch.load(model_path, map_location='cpu')
+    ckpt = _load_checkpoint(model_path)
     args = ckpt['args'].model.replace("ManyAR_PatchEmbed", "PatchEmbedDust3R")
     if 'landscape_only' not in args:
         args = args[:-1] + ', landscape_only=False)'

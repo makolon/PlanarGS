@@ -15,7 +15,7 @@ import torch
 from torch import nn
 from plyfile import PlyData, PlyElement
 from pytorch3d.transforms import quaternion_to_matrix
-from simple_knn._C import distCUDA2
+from simple_knn import distCUDA2
 
 from planargs.common_utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation
 from planargs.common_utils.sh_utils import RGB2SH

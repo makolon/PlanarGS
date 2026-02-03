@@ -1,24 +1,27 @@
-import sys
-import os
-
-sys.path.append(os.path.join(os.getcwd(), "submodules/groundedsam/GroundingDINO"))
-sys.path.append(os.path.join(os.getcwd(), "submodules/groundedsam/segment_anything"))
+from importlib import resources
+from pathlib import Path
 
 import torch
 import cv2
 from PIL import Image
 
 # Grounding DINO
-import submodules.groundedsam.GroundingDINO.groundingdino.datasets.transforms as T
-from submodules.groundedsam.GroundingDINO.groundingdino.models import build_model
-from submodules.groundedsam.GroundingDINO.groundingdino.util.slconfig import SLConfig
-from submodules.groundedsam.GroundingDINO.groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
+from groundingdino.datasets import transforms as T
+from groundingdino.models import build_model
+from groundingdino.util.slconfig import SLConfig
+from groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
 
 # segment anything
-from submodules.groundedsam.segment_anything.segment_anything import (
-    sam_model_registry,
-    SamPredictor
-)
+from segment_anything import SamPredictor, sam_model_registry
+
+
+def _groundingdino_config_path() -> str:
+    try:
+        return str(resources.files("groundingdino") / "config" / "GroundingDINO_SwinT_OGC.py")
+    except Exception:
+        import groundingdino
+
+        return str(Path(groundingdino.__file__).resolve().parent / "config" / "GroundingDINO_SwinT_OGC.py")
 
 
 def keep_or_wall(s):
@@ -31,7 +34,7 @@ def keep_or_wall(s):
 class GroundingDINO:
 
     def __init__(self, device):
-        self.config_file = "./submodules/groundedsam/GroundingDINO/groundingdino/config/GroundingDINO_SwinT_OGC.py"
+        self.config_file = _groundingdino_config_path()
         
         self.box_threshold = 0.25
         self.text_threshold = 0.2
