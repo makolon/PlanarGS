@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77", "packaging>=24.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -47,13 +47,9 @@ pytorch3d = { path = "submodules/pytorch3d", editable = true }
 diff-plane-rasterization = { path = "submodules/diff-plane-rasterization" }
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["planargs", "planargs.*"]
 
-[tool.uv.extra-build-dependencies]
-simple-knn = ["torch==2.4.1"]
-pytorch3d = ["torch==2.4.1"]
-diff-plane-rasterization = ["torch==2.4.1"]
