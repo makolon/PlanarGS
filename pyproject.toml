@@ -8,12 +8,14 @@ version = "0.1.0"
 description = "PlanarGS: High-Fidelity Indoor 3D Gaussian Splatting guided by planar priors"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
-license = "MIT"
+license = { text = "MIT" }
 authors = [{ name = "SJTU-ViSYS-team" }]
+
+# NOTE:
+# - Avoid submodule/path-based dependencies here.
+# - Let pip resolve dependencies from indexes (PyPI / custom indexes).
+# - Keep GPU/torch/CUDA-coupled packages optional to avoid accidental CPU installs.
 dependencies = [
-  "torch",
-  "torchvision",
-  "torchaudio",
   "roma",
   "gradio",
   "matplotlib",
@@ -29,22 +31,41 @@ dependencies = [
   "yapf",
   "pycocotools",
   "timm",
-  "simple-knn",
-  "pytorch3d",
-  "diff-plane-rasterization",
   "viser",
   "nerfview>=0.1.3",
   "splines>=0.3.3",
   "jaxtyping>=0.3.7",
 ]
 
-[tool.uv.pip]
-extra-index-url = ["https://download.pytorch.org/whl/cu128"]
+[project.optional-dependencies]
+# Runtime dependencies that are strongly coupled to CUDA/torch ABI.
+# Users should install these with the correct CUDA wheel index (or conda) for their environment.
+torch = [
+  "torch",
+  "torchvision",
+  "torchaudio",
+]
 
-[tool.uv.sources]
-simple-knn = { path = "submodules/simple-knn", editable = true }
-pytorch3d = { path = "submodules/pytorch3d", editable = true }
-diff-plane-rasterization = { path = "submodules/diff-plane-rasterization", editable = true }
+# Third-party CUDA/C++ extensions (often need to be built against the currently installed torch).
+# Keeping them optional prevents pip from trying to build/install them automatically in mismatched envs.
+extensions = [
+  "simple-knn",
+  "diff-plane-rasterization",
+]
+
+# PyTorch3D distribution varies by platform/CUDA.
+# Keeping it optional avoids frequent install failures.
+pytorch3d = [
+  "pytorch3d",
+]
+
+# Convenience meta-extra for a typical full install.
+# Users can do: pip install "planargs[full]"
+full = [
+  "planargs[torch]",
+  "planargs[extensions]",
+  "planargs[pytorch3d]",
+]
 
 [tool.setuptools]
 package-dir = { "" = "src" }
@@ -53,3 +74,11 @@ package-dir = { "" = "src" }
 where = ["src"]
 include = ["planargs", "planargs.*"]
 
+# -----------------------------
+# Optional: uv-specific settings
+# -----------------------------
+# NOTE:
+# - Keep uv settings, but do NOT pin submodules via tool.uv.sources.
+# - This file should remain pip-friendly even without uv.
+[tool.uv.pip]
+extra-index-url = ["https://download.pytorch.org/whl/cu128"]
