@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "planargs"
-version = "0.0.0"
+version = "0.1.0"
 description = "PlanarGS: High-Fidelity Indoor 3D Gaussian Splatting guided by planar priors"
 readme = "README.md"
 requires-python = ">=3.11,<3.12"
@@ -33,6 +33,9 @@ dependencies = [
   "pytorch3d",
   "diff-plane-rasterization",
   "viser",
+  "nerfview>=0.1.3",
+  "splines>=0.3.3",
+  "jaxtyping>=0.3.7",
 ]
 
 [tool.uv.pip]
