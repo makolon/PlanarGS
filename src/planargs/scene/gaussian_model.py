@@ -14,13 +14,13 @@ import numpy as np
 import torch
 from torch import nn
 from plyfile import PlyData, PlyElement
-from pytorch3d.transforms import quaternion_to_matrix
 from simple_knn._C import distCUDA2
 
 from planargs.common_utils.general_utils import inverse_sigmoid, get_expon_lr_func, build_rotation
 from planargs.common_utils.sh_utils import RGB2SH
 from planargs.common_utils.graphics_utils import BasicPointCloud, Depth2Pointscam
 from planargs.common_utils.general_utils import strip_symmetric, build_scaling_rotation
+from planargs.common_utils.rotation_utils import quaternion_to_matrix
 from planargs.planar.densify_points import PlaneMaskGS, InitialPlaneSeg, SegPoints, find_nearest
 
 

@@ -12,35 +12,24 @@ PlanarGS combines planar priors from the LP3 pipeline and geometric priors from 
 ## Installation
 
 ```shell
-git clone https://github.com/SJTU-ViSYS-team/PlanarGS.git --recursive  
+git clone https://github.com/SJTU-ViSYS-team/PlanarGS.git
 cd PlanarGS
 
-conda create -n planargs python=3.10
-conda activate planargs
-pip install cmake==3.20.*
+uv venv --python 3.11
+source .venv/bin/activate
 
-pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu118  #replace your cuda version
+# replace cu118 with your CUDA version
+uv pip install torch==2.4.1 torchvision==0.19.1 torchaudio==2.4.1 --index-url https://download.pytorch.org/whl/cu118
+uv pip install cmake==3.20.*
 
-pip install -r requirements.txt 
+uv pip install -e .
 ```
-Install submodules:
-``` shell
-pip install -e submodules/simple-knn --no-build-isolation 
-pip install -e submodules/pytorch3d --no-build-isolation   
-pip install submodules/diff-plane-rasterization --no-build-isolation   
-```
-### Installation of GroundedSAM
-We use the pre-trained vision-language foundational model [GroundedSAM](https://github.com/IDEA-Research/Grounded-Segment-Anything) in the Pipeline for Language-prompted planar priors (LP3). You can download and install it following:
+If you publish `planargs` to an index, you can install it directly with:
 ```shell
-cd submodules 
-git clone https://github.com/IDEA-Research/Grounded-Segment-Anything.git 
-mv Grounded-Segment-Anything groundedsam
-
-cd groundedsam && pip install -e segment_anything
-pip install --no-build-isolation -e GroundingDINO 
-&& cd ../..
+uv pip install planargs
 ```
-- Please download checkpoints of GroundedSAM from [link1](https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+GroundingDINO / Segment Anything dependencies are installed from `pyproject.toml`.  
+Please only download checkpoints of GroundedSAM from [link1](https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 ) and [link2](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth), and put them into the `ckpt` folder.
 ## Dataset Preprocess
 We evaluate our method on multi-view images from three indoor datasets:
@@ -56,13 +45,13 @@ We provide all the above above data preprocessed by COLMAP, which can be downloa
 **❗Custom Data :** \
 If you want to try PlanarGS on other scenes, please use [COLMAP](https://colmap.github.io/) to obtain camera poses and sparse point cloud from multi-view images, and organize the COLMAP results into the **images** and **sparse** directories as shown in our overview of data directory below.
 ### Generation of Geometric Priors
-We use the pre-trained multi-view foundational model [DUSt3R](https://github.com/naver/dust3r) (code is in the `submodule` folder) to generate geometric priors. Please download the checkpoints of DUSt3R from [link3](https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth) and put it into the `ckpt` folder.
+We use the pre-trained multi-view foundational model [DUSt3R](https://github.com/naver/dust3r) (vendored in the package) to generate geometric priors. Please download the checkpoints of DUSt3R from [link3](https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth) and put it into the `ckpt` folder.
 ```shell
 # data_path represents the path to a scene folder of a dataset.
 python run_geomprior.py -s <data_path> --group_size 40 #--vis
 ```
 - By default, we sample and extract **40** images per group to run DUSt3R. If your GPU has limited memory (e.g., RTX 3090 with 24GB VRAM), setting `--group_size 25` can help reduce memory usage. However, this may slightly reduce the accuracy of DUSt3R and consequently impact the quality of PlanarGS reconstruction.
-- DUSt3R can be swapped out for another multi-view foundation model by adding the model to the `submodules` directory and writing the corresponding `./geomprior/run_dust3r.py` code.
+- DUSt3R can be swapped out for another multi-view foundation model by replacing the corresponding `./geomprior/run_dust3r.py` implementation.
 ### Pipeline for Language-prompted planar priors (LP3)
 One of the advantages of using the open-vocabulary foundation model is that, for the scene-specific training of PlanarGS, you can freely design **prompts** tailored to the characteristics of each scene, which may further improve the LP3 pipeline and enhance the reconstruction performance of PlanarGS. 
 - The prompts provided with the `-t` option below are suitable for most indoor scenes. 
@@ -70,7 +59,7 @@ One of the advantages of using the open-vocabulary foundation model is that, for
 ```shell
 python run_lp3.py -s <data_path> -t "wall. floor. door. screen. window. ceiling. table" #--vis
 ```
-- GroundedSAM can be swapped out for another vision-language foundation model by adding the model to the `submodules` directory and writing the corresponding `./lp3/run_groundedsam.py` code.
+- GroundedSAM can be swapped out for another vision-language foundation model by replacing the corresponding `./lp3/run_groundedsam.py` implementation.
 ### Overview of Data Directory
 The data directory after preprocession should contain the following components to be complete for training.
 ```shell

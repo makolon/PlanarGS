@@ -39,7 +39,8 @@ def prepare_output_and_logger(args):
 
 
 def training_report(tb_writer, iteration, Ll1, loss, dn_loss, plane_loss, prior_deploss, prior_normloss, co_planar,
-                    l1_loss, elapsed, test_iters, scene : Scene, renderFunc, renderArgs, vis_planar = False):
+                    l1_loss, elapsed, test_iters, scene : Scene, renderFunc, renderArgs,
+                    render_plane=True, render_depth_normal=True, vis_planar=False):
     if tb_writer:
         tb_writer.add_scalar('train_loss_patches/l1_loss', Ll1.item(), iteration)
         tb_writer.add_scalar('train_loss_patches/total_loss', loss.item(), iteration)
@@ -64,30 +65,50 @@ def training_report(tb_writer, iteration, Ll1, loss, dn_loss, plane_loss, prior_
                 l1_test = 0.0
                 psnr_test = 0.0
                 for idx, viewpoint in enumerate(config['cameras']):
-                    out = renderFunc(viewpoint, scene.gaussians, *renderArgs)
+                    out = renderFunc(
+                        viewpoint,
+                        scene.gaussians,
+                        *renderArgs,
+                        return_plane=render_plane,
+                        return_depth_normal=render_depth_normal,
+                    )
                     image = out["render"].clamp(0.0, 1.0)
                     gt_image = viewpoint.gt_image
 
                     if tb_writer and (idx < 5):
-                        rendered_normal = out["rendered_normal"]
-                        depth_normal = out["depth_normal"]
-                        depth = out["plane_depth"]
-                        min, max, depth_pic = visualDepth(depth)
-                        normal_pic = visualNorm(rendered_normal)
-                        depthnormal_pic = visualNorm(depth_normal)
                         tb_writer.add_images(config['name'] + "_view_{}/render".format(viewpoint.image_name), image[None], global_step=iteration)
-                        tb_writer.add_images(config['name'] + "_view_{}/rendered_normal".format(viewpoint.image_name), normal_pic[None], global_step=iteration)  
-                        tb_writer.add_images(config['name'] + "_view_{}/depth_normal".format(viewpoint.image_name), depthnormal_pic[None], global_step=iteration)  
-                        tb_writer.add_images(config['name'] + "_view_{}/depth".format(viewpoint.image_name), depth_pic[None], global_step=iteration) 
 
-                        if viewpoint.priordepth is not None:
-                            _, _, priordepth_pic = visualDepth(viewpoint.priordepth * viewpoint.depth_conf, path=None, filename=None, miner=min, maxer=max) 
-                            tb_writer.add_images(config['name'] + "_view_{}/prior_depth".format(viewpoint.image_name), priordepth_pic[None], global_step=iteration)
+                        if render_plane:
+                            rendered_normal = out["rendered_normal"]
+                            depth = out["plane_depth"]
+                            min, max, depth_pic = visualDepth(depth)
+                            normal_pic = visualNorm(rendered_normal)
+                            tb_writer.add_images(config['name'] + "_view_{}/rendered_normal".format(viewpoint.image_name), normal_pic[None], global_step=iteration)
+                            tb_writer.add_images(config['name'] + "_view_{}/depth".format(viewpoint.image_name), depth_pic[None], global_step=iteration)
 
-                        if vis_planar and viewpoint.planarmask is not None:
-                            planar_depth = co_planar(depth, viewpoint.planarmask, viewpoint.inv_K)
-                            _, _, planardepth_pic = visualDepth(planar_depth, path=None, filename=None, miner=min, maxer=max)  
-                            tb_writer.add_images(config['name'] + "_view_{}/planar_depth".format(viewpoint.image_name), planardepth_pic[None], global_step=iteration)
+                            if render_depth_normal:
+                                depth_normal = out["depth_normal"]
+                                depthnormal_pic = visualNorm(depth_normal)
+                                tb_writer.add_images(config['name'] + "_view_{}/depth_normal".format(viewpoint.image_name), depthnormal_pic[None], global_step=iteration)
+
+                            if viewpoint.priordepth is not None:
+                                _, _, priordepth_pic = visualDepth(
+                                    viewpoint.priordepth * viewpoint.depth_conf,
+                                    path=None,
+                                    filename=None,
+                                    miner=min,
+                                    maxer=max,
+                                )
+                                tb_writer.add_images(config['name'] + "_view_{}/prior_depth".format(viewpoint.image_name), priordepth_pic[None], global_step=iteration)
+
+                            if vis_planar and viewpoint.planarmask is not None:
+                                planar_depth = co_planar(depth, viewpoint.planarmask, viewpoint.inv_K)
+                                _, _, planardepth_pic = visualDepth(planar_depth, path=None, filename=None, miner=min, maxer=max)
+                                tb_writer.add_images(config['name'] + "_view_{}/planar_depth".format(viewpoint.image_name), planardepth_pic[None], global_step=iteration)
+                        else:
+                            if viewpoint.priordepth is not None:
+                                _, _, priordepth_pic = visualDepth(viewpoint.priordepth * viewpoint.depth_conf, path=None, filename=None)
+                                tb_writer.add_images(config['name'] + "_view_{}/prior_depth".format(viewpoint.image_name), priordepth_pic[None], global_step=iteration)
 
                         if iteration == test_iters[0]:
                             tb_writer.add_images(config['name'] + "_view_{}/ground_truth".format(viewpoint.image_name), gt_image[None], global_step=iteration)

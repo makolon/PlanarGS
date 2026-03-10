@@ -10,22 +10,13 @@ from scipy.spatial.transform import Rotation
 import matplotlib.pyplot as pl
 pl.ion()
 
-import sys
-from pathlib import Path
-
-for parent in Path(__file__).resolve().parents:
-    if (parent / "submodules" / "dust3r").is_dir():
-        _REPO_ROOT = parent
-        break
-sys.path.insert(0, str(_REPO_ROOT))
-
-from submodules.dust3r.dust3r.inference import inference
-from submodules.dust3r.dust3r.model import AsymmetricCroCo3DStereo
-from submodules.dust3r.dust3r.image_pairs import make_pairs
-from submodules.dust3r.dust3r.utils.image import load_images
-from submodules.dust3r.dust3r.utils.device import to_numpy
-from submodules.dust3r.dust3r.viz import add_scene_cam, CAM_COLORS, OPENGL, pts3d_to_trimesh, cat_meshes
-from submodules.dust3r.dust3r.cloud_opt import global_aligner, GlobalAlignerMode
+from dust3r.inference import inference
+from dust3r.model import AsymmetricCroCo3DStereo
+from dust3r.image_pairs import make_pairs
+from dust3r.utils.image import load_images
+from dust3r.utils.device import to_numpy
+from dust3r.viz import add_scene_cam, CAM_COLORS, OPENGL, pts3d_to_trimesh, cat_meshes
+from dust3r.cloud_opt import global_aligner, GlobalAlignerMode
 
 torch.backends.cuda.matmul.allow_tf32 = True  # for gpu >= Ampere and pytorch >= 1.12
 batch_size = 1
@@ -190,8 +181,8 @@ def main_demo(tmpdirname, model, device, image_size, input_folder, output_folder
 
 
 def DUSt3R(input_folder, output_folder, weights_path, image_list=None, vis=False, device='cuda', image_size=512, silent=False):
-    # Hardcoded input folder
-    tmp_path = './submodules/dust3r/tmp'
+    # Reuse a stable temporary directory for DUSt3R scratch files.
+    tmp_path = os.path.join(tempfile.gettempdir(), "planargs_dust3r")
     os.makedirs(tmp_path, exist_ok=True)
     tempfile.tempdir = tmp_path
 

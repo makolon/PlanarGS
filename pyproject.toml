@@ -11,12 +11,8 @@ requires-python = ">=3.11,<3.12"
 license = { text = "MIT" }
 authors = [{ name = "SJTU-ViSYS-team" }]
 
-# NOTE:
-# - Do NOT use submodule/path-based dependencies here.
-# - Keep dependencies as normal package requirements.
-# - The top-level project (e.g., polaris_real2sim) will pin sources via uv.
 dependencies = [
-  # Torch stack (must be installed with the correct CUDA wheels by the top-level installer)
+  # Torch stack (install with the matching CUDA wheels in user environment)
   "torch",
   "torchvision",
   "torchaudio",
@@ -24,11 +20,14 @@ dependencies = [
   # Core python deps
   "roma",
   "gradio",
+  "tqdm",
   "matplotlib",
   "opencv-python",
   "scipy",
   "einops",
   "trimesh",
+  "pyglet<2",
+  "huggingface-hub[torch]>=0.22",
   "tensorboard",
   "plyfile",
   "open3d",
@@ -41,13 +40,12 @@ dependencies = [
   "nerfview>=0.1.3",
   "splines>=0.3.3",
   "jaxtyping>=0.3.7",
+  "groundingdino-py>=0.4.0",
+  "segment-anything>=1.0",
 
-  # CUDA/C++ extensions (source pinned by the top-level project via uv)
+  # CUDA/C++ extensions (resolved via uv local sources)
   "simple-knn",
   "diff-plane-rasterization",
-
-  # Optional but commonly used; top-level project should pin source/wheels
-  "pytorch3d",
 ]
 
 [tool.setuptools]
@@ -55,4 +53,19 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["planargs", "planargs.*"]
+include = [
+  "planargs",
+  "planargs.*",
+  "dust3r",
+  "dust3r.*",
+  "planargs_croco_models",
+  "planargs_croco_models.*",
+]
+
+[tool.uv.sources]
+diff-plane-rasterization = { path = "third_party/diff-plane-rasterization", editable = true }
+simple-knn = { path = "third_party/simple-knn", editable = true }
+
+[tool.uv.extra-build-dependencies]
+diff-plane-rasterization = ["torch"]
+simple-knn = ["torch"]

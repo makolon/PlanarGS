@@ -8,17 +8,12 @@ Orchestrator script that chains the PlanarGS pipeline:
 Stages 1-3 are consolidated here; rendering remains in render.py.
 """
 import os
-import sys
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+os.environ['TORCH_USE_CUDA_DSA'] = '1'
+
 import random
 from random import randint
 from argparse import ArgumentParser
-
-# Add submodules to Python path
-script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(script_dir)
-dust3r_path = os.path.join(project_root, "submodules", "dust3r")
-if dust3r_path not in sys.path:
-    sys.path.insert(0, dust3r_path)
 
 import cv2
 import numpy as np
@@ -50,9 +45,6 @@ from planargs.scene import Scene, GaussianModel
 from planargs.scene.cameras import LoadGeomprior
 from planargs.scene.dataset_readers import readColmapSceneInfo
 from render import render_sets
-
-os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-os.environ['TORCH_USE_CUDA_DSA'] = '1'
 
 
 def get_numeric_part(filename):
@@ -374,8 +366,12 @@ def training(dataset, opt, pipe, prp, test_iters, saving_iterations, checkpoint_
                 progress_bar.close()
 
             # Log and save
+            render_plane = iteration >= iter_argu
+            render_depth_normal = render_plane and (iteration >= iter_dn)
             training_report(tb_writer, iteration, Ll1, loss, dn_loss, plane_loss, prior_deploss, prior_normloss, co_planar,
-                            l1_loss, iter_start.elapsed_time(iter_end), test_iters, scene, render, (pipe, background), vis_planar=(iteration >= opt.planar_iteration))
+                            l1_loss, iter_start.elapsed_time(iter_end), test_iters, scene, render, (pipe, background),
+                            render_plane=render_plane, render_depth_normal=render_depth_normal,
+                            vis_planar=(iteration >= opt.planar_iteration))
             if (iteration in saving_iterations):
                 print("\n[ITER {}] Saving Gaussians".format(iteration))
                 scene.save(iteration)
