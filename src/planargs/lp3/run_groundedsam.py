@@ -7,16 +7,12 @@ from PIL import Image
 # Grounding DINO
 import groundingdino
 import groundingdino.datasets.transforms as T
-from groundingdino.models import build_model
-from groundingdino.util.slconfig import SLConfig
-from groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
 
 # segment anything
 from segment_anything import (
     sam_model_registry,
     SamPredictor
 )
-
 
 _GROUNDINGDINO_CONFIG = (
     Path(groundingdino.__file__).resolve().parent
@@ -36,7 +32,7 @@ class GroundingDINO:
 
     def __init__(self, device):
         self.config_file = str(_GROUNDINGDINO_CONFIG)
-        
+
         self.box_threshold = 0.25
         self.text_threshold = 0.2
         self.device = device
