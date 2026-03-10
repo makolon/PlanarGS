@@ -1,4 +1,5 @@
 import os
+import re
 import torch
 import numpy as np
 import tempfile
@@ -21,17 +22,21 @@ from dust3r.cloud_opt import global_aligner, GlobalAlignerMode
 torch.backends.cuda.matmul.allow_tf32 = True  # for gpu >= Ampere and pytorch >= 1.12
 batch_size = 1
 DUST3R_REPO_ID = "naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt"
+HF_REPO_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*/[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 
 def _looks_like_local_path(value):
     return (
-        value.startswith(".")
+        os.path.isabs(value)
+        or value.startswith(".")
         or value.startswith("~")
-        or value.startswith("/")
-        or os.sep in value
         or value.endswith(".pth")
         or value.endswith(".pt")
     )
+
+
+def _looks_like_hf_repo_id(value):
+    return HF_REPO_ID_PATTERN.fullmatch(value) is not None
 
 
 def _resolve_weights_path(weights_path):
@@ -46,13 +51,19 @@ def _resolve_weights_path(weights_path):
     if os.path.isfile(expanded) or os.path.isdir(expanded):
         return expanded
 
+    if _looks_like_hf_repo_id(candidate):
+        return candidate
+
     if _looks_like_local_path(candidate):
         raise FileNotFoundError(
             f"DUSt3R weights path does not exist: {expanded}. "
             f"Pass an existing local checkpoint/directory or a Hugging Face repo id (e.g. '{DUST3R_REPO_ID}')."
         )
 
-    return candidate
+    raise FileNotFoundError(
+        f"DUSt3R weights path is invalid: {candidate}. "
+        f"Pass an existing local checkpoint/directory or a Hugging Face repo id (e.g. '{DUST3R_REPO_ID}')."
+    )
 
 
 def _convert_scene_output_to_glb(outdir, imgs, pts3d, mask, focals, cams2world, cam_size=0.05,
