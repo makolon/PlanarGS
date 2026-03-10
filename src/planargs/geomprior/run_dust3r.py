@@ -20,6 +20,40 @@ from dust3r.cloud_opt import global_aligner, GlobalAlignerMode
 
 torch.backends.cuda.matmul.allow_tf32 = True  # for gpu >= Ampere and pytorch >= 1.12
 batch_size = 1
+DUST3R_REPO_ID = "naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt"
+
+
+def _looks_like_local_path(value):
+    return (
+        value.startswith(".")
+        or value.startswith("~")
+        or value.startswith("/")
+        or os.sep in value
+        or value.endswith(".pth")
+        or value.endswith(".pt")
+    )
+
+
+def _resolve_weights_path(weights_path):
+    if weights_path is None:
+        return DUST3R_REPO_ID
+
+    candidate = str(weights_path).strip()
+    if not candidate:
+        return DUST3R_REPO_ID
+
+    expanded = os.path.expanduser(candidate)
+    if os.path.isfile(expanded) or os.path.isdir(expanded):
+        return expanded
+
+    if _looks_like_local_path(candidate):
+        raise FileNotFoundError(
+            f"DUSt3R weights path does not exist: {expanded}. "
+            f"Pass an existing local checkpoint/directory or a Hugging Face repo id (e.g. '{DUST3R_REPO_ID}')."
+        )
+
+    return candidate
+
 
 def _convert_scene_output_to_glb(outdir, imgs, pts3d, mask, focals, cams2world, cam_size=0.05,
                                  cam_color=None, as_pointcloud=False,
@@ -186,7 +220,10 @@ def DUSt3R(input_folder, output_folder, weights_path, image_list=None, vis=False
     os.makedirs(tmp_path, exist_ok=True)
     tempfile.tempdir = tmp_path
 
-    model = AsymmetricCroCo3DStereo.from_pretrained(weights_path).to(device)
+    resolved_weights_path = _resolve_weights_path(weights_path)
+    if not silent:
+        print(f"Loading DUSt3R weights from: {resolved_weights_path}")
+    model = AsymmetricCroCo3DStereo.from_pretrained(resolved_weights_path).to(device)
 
     with tempfile.TemporaryDirectory(suffix='dust3r_gradio_demo') as tmpdirname:
         if not silent:

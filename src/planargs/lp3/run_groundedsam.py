@@ -7,6 +7,9 @@ from PIL import Image
 # Grounding DINO
 import groundingdino
 import groundingdino.datasets.transforms as T
+from groundingdino.models import build_model
+from groundingdino.util.slconfig import SLConfig
+from groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
 
 # segment anything
 from segment_anything import (
@@ -37,7 +40,6 @@ class GroundingDINO:
         self.text_threshold = 0.2
         self.device = device
 
-
     def load_image(self, image_path):
         self.image_pil = Image.open(image_path).convert("RGB")  
 
@@ -50,18 +52,20 @@ class GroundingDINO:
         )
         self.image, _ = transform(self.image_pil, None)  # 3, h, w
 
-
     def load_model(self, ckpt_grounding):
         # GroundingDINO
+        ckpt_path = Path(ckpt_grounding).expanduser()
+        if not ckpt_path.is_file():
+            raise FileNotFoundError(f"GroundingDINO checkpoint not found: {ckpt_path}")
+
         args = SLConfig.fromfile(self.config_file)
         args.device = self.device
         args.bert_base_uncased_path = None
         self.model = build_model(args)
-        checkpoint = torch.load(ckpt_grounding, map_location="cpu")
+        checkpoint = torch.load(str(ckpt_path), map_location="cpu")
         load_res = self.model.load_state_dict(clean_state_dict(checkpoint["model"]), strict=False)
         print(load_res)
         _ = self.model.eval()
-
 
     def get_detection_output(self, caption, with_logits=True):
         caption = caption.lower()
@@ -104,16 +108,16 @@ class SAM:
         self.device = device
         self.version = "vit_h"
 
-
     def load_model(self, ckpt_sam):
-        self.predictor = SamPredictor(sam_model_registry[self.version](checkpoint=ckpt_sam).to(self.device))
-
+        ckpt_path = Path(ckpt_sam).expanduser()
+        if not ckpt_path.is_file():
+            raise FileNotFoundError(f"SAM checkpoint not found: {ckpt_path}")
+        self.predictor = SamPredictor(sam_model_registry[self.version](checkpoint=str(ckpt_path)).to(self.device))
 
     def load_image(self, file_path):
         self.image = cv2.imread(file_path)
         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
         self.predictor.set_image(self.image)
-
 
     def get_segmentation_mask(self, boxes_filt):
         transformed_boxes = self.predictor.transform.apply_boxes_torch(boxes_filt, self.image.shape[:2]).to(self.device)

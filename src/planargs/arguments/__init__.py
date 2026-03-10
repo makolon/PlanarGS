@@ -119,7 +119,7 @@ class PriorParams(ParamGroup):
     def __init__(self, parser):
         # Get the absolute path to the ckpt directory
         _ckpt_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "ckpt")
-        self.ckpt_mv = os.path.join(_ckpt_dir, "DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth")
+        self.ckpt_mv = "naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt"
         self.ckpt_det = os.path.join(_ckpt_dir, "groundingdino_swint_ogc.pth")
         self.ckpt_seg = os.path.join(_ckpt_dir, "sam_vit_h_4b8939.pth")
 
@@ -152,15 +152,18 @@ def get_combined_args(parser : ArgumentParser):
     cfgfile_string = "Namespace()"
     args_cmdline = parser.parse_args(cmdlne_string)
 
-    try:
+    cfgfilepath = None
+    if getattr(args_cmdline, "model_path", None):
         cfgfilepath = os.path.join(args_cmdline.model_path, "cfg_args")
         print("Looking for config file in", cfgfilepath)
-        with open(cfgfilepath) as cfg_file:
-            print("Config file found: {}".format(cfgfilepath))
-            cfgfile_string = cfg_file.read()
-    except (TypeError, FileNotFoundError):
-        print("Config file not found at", cfgfilepath if 'cfgfilepath' in locals() else "unknown path")
-        pass
+        if os.path.isfile(cfgfilepath):
+            with open(cfgfilepath) as cfg_file:
+                print("Config file found: {}".format(cfgfilepath))
+                cfgfile_string = cfg_file.read()
+        else:
+            print("Config file not found at", cfgfilepath)
+    else:
+        print("Config file not found at unknown path")
     args_cfgfile = eval(cfgfile_string)
 
     merged_dict = vars(args_cfgfile).copy()

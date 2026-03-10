@@ -29,7 +29,7 @@ If you publish `planargs` to an index, you can install it directly with:
 uv pip install planargs
 ```
 GroundingDINO / Segment Anything dependencies are installed from `pyproject.toml`.  
-Please only download checkpoints of GroundedSAM from [link1](https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
+Please download checkpoints of GroundedSAM from [link1](https://github.com/IDEA-Research/GroundingDINO/releases/download/v0.1.0-alpha/groundingdino_swint_ogc.pth
 ) and [link2](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth), and put them into the `ckpt` folder.
 ## Dataset Preprocess
 We evaluate our method on multi-view images from three indoor datasets:
@@ -45,11 +45,13 @@ We provide all the above above data preprocessed by COLMAP, which can be downloa
 **❗Custom Data :** \
 If you want to try PlanarGS on other scenes, please use [COLMAP](https://colmap.github.io/) to obtain camera poses and sparse point cloud from multi-view images, and organize the COLMAP results into the **images** and **sparse** directories as shown in our overview of data directory below.
 ### Generation of Geometric Priors
-We use the pre-trained multi-view foundational model [DUSt3R](https://github.com/naver/dust3r) (vendored in the package) to generate geometric priors. Please download the checkpoints of DUSt3R from [link3](https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth) and put it into the `ckpt` folder.
+We use the pre-trained multi-view foundational model [DUSt3R](https://github.com/naver/dust3r) (vendored in the package) to generate geometric priors.  
+By default, `--ckpt_mv` uses the Hugging Face model id `naver/DUSt3R_ViTLarge_BaseDecoder_512_dpt`, so a local `.pth` file is not required.
 ```shell
 # data_path represents the path to a scene folder of a dataset.
 python run_geomprior.py -s <data_path> --group_size 40 #--vis
 ```
+- If you want to use local DUSt3R weights (offline mode), pass an existing local path via `--ckpt_mv /absolute/path/to/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth`.
 - By default, we sample and extract **40** images per group to run DUSt3R. If your GPU has limited memory (e.g., RTX 3090 with 24GB VRAM), setting `--group_size 25` can help reduce memory usage. However, this may slightly reduce the accuracy of DUSt3R and consequently impact the quality of PlanarGS reconstruction.
 - DUSt3R can be swapped out for another multi-view foundation model by replacing the corresponding `./geomprior/run_dust3r.py` implementation.
 ### Pipeline for Language-prompted planar priors (LP3)
