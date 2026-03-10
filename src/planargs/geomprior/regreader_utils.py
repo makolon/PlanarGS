@@ -26,53 +26,61 @@ def AlignGroupDepth(group_cam_infos, depth_list, pcd, conf_list, vis_path, prep,
     depths_list = []
     colmapweight_list = []
     resized_conf_list = []
+    pcd_lookup = None
+    if pcd is not None and len(pcd) > 0:
+        pcd_lookup = {int(row[0]): row for row in pcd}
+
     for idx in range(len(group_cam_infos)):
         cam_info = group_cam_infos[idx]
         height = cam_info.size[1]
         width = cam_info.size[0]
 
         # Select only the points visible in the current view.
-        if pcd is not None:
+        if pcd_lookup is not None:
             valid_point3D_ids = cam_info.points3d_ids[cam_info.points3d_ids != -1]
-            count = 0
             xyz = []
             errors = []
-            for pid_3d in pcd[:,0]:
-                for pid in valid_point3D_ids:
-                    if pid_3d == pid:
-                        errors.append(pcd[count, 1])
-                        xyz.append(pcd[count, 2:5])
-                        continue
-                count += 1
-            errors = torch.from_numpy(np.array(errors)).to(device)
-            xyz = torch.from_numpy(np.array(xyz)).float().to(device)
+            for pid in valid_point3D_ids:
+                point = pcd_lookup.get(int(pid))
+                if point is None:
+                    continue
+                errors.append(point[1])
+                xyz.append(point[2:5])
 
-            colmap_weight = torch.zeros((height, width), device=device)
-            K, inv_K = get_k(cam_info.FovX, cam_info.FovY, height, width)
-            R = torch.from_numpy(cam_info.R).float().to(device)
-            T = torch.from_numpy(cam_info.T).float().to(device)
-            points3d = R.t() @ xyz.t() + T.view(3, 1)  # (3, N)
+            if len(xyz) > 0:
+                errors = torch.from_numpy(np.asarray(errors, dtype=np.float32)).to(device)
+                xyz = torch.from_numpy(np.asarray(xyz, dtype=np.float32)).to(device)
+                K, _ = get_k(cam_info.FovX, cam_info.FovY, height, width)
+                R = torch.from_numpy(cam_info.R).float().to(device)
+                T = torch.from_numpy(cam_info.T).float().to(device)
+                points3d = R.t() @ xyz.t() + T.view(3, 1)  # (3, N)
 
-            # Assign weights to the point cloud based on COLMAP quality.
-            depthmap, colmap_weight = Pointscam2Depth(K, points3d, size=(height, width), depth=True, errors=errors)
-            depthmap_list.append(depthmap)  # d_sparse
-            colmapweight_list.append(colmap_weight)
+                # Assign weights to the point cloud based on COLMAP quality.
+                depthmap, colmap_weight = Pointscam2Depth(K, points3d, size=(height, width), depth=True, errors=errors)
+                depthmap_list.append(depthmap)  # d_sparse
+                colmapweight_list.append(colmap_weight)
+            else:
+                depthmap_list.append(torch.zeros((height, width), device=device))
+                colmapweight_list.append(torch.zeros((height, width), device=device))
         else:
             # No COLMAP points available, use zeros
             depthmap_list.append(torch.zeros((height, width), device=device))
             colmapweight_list.append(torch.zeros((height, width), device=device))
        
-        depth = depth_list[idx] 
+        depth = depth_list[idx]
+        if conf_list != []:
+            conf = conf_list[idx]
+        else:
+            conf = np.ones_like(depth, dtype=np.float32)
+
         # Scale adjustment for depth map generateds by the feedforward model.
         if depth.shape != (height, width):
-            depth_list[idx] = cv2.resize(depth, cam_info.size, interpolation=cv2.INTER_LANCZOS4)
-            if conf_list != []:
-                conf = conf_list[idx]
-                conf = cv2.resize(conf, cam_info.size, interpolation=cv2.INTER_LANCZOS4)
-                resized_conf_list.append(conf)
-            else:
-                resized_conf_list.append(np.ones((height, width)))
+            depth = cv2.resize(depth, cam_info.size, interpolation=cv2.INTER_LANCZOS4)
+        if conf.shape != (height, width):
+            conf = cv2.resize(conf, cam_info.size, interpolation=cv2.INTER_LANCZOS4)
 
+        depth_list[idx] = depth
+        resized_conf_list.append(conf.astype(np.float32))
         depths_list.append(torch.from_numpy(depth_list[idx]).to(device))  # d_dense
                  
     depth_aligned_list, depth_param, alignoff_loss = OptimizeGroupDepth(source=depths_list, target=depthmap_list, weight=colmapweight_list, prep=prep) 
@@ -127,8 +135,6 @@ def LoadGroupDepth(group_cam_infos, depth_folder, conf_folder, pcd, vis_path, pr
         depth_list.append(depth)
 
     return AlignGroupDepth(group_cam_infos, depth_list, pcd, conf_list, vis_path, prep)
-
-
 
 
 

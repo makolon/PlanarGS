@@ -114,7 +114,7 @@ def read_points3D_text(path):
     """
     xyzs = None
     rgbs = None
-    errors = None
+    points3D = None
     num_points = 0
     with open(path, "r") as fid:
         while True:
@@ -127,7 +127,7 @@ def read_points3D_text(path):
 
     xyzs = np.empty((num_points, 3))
     rgbs = np.empty((num_points, 3))
-    errors = np.empty((num_points, 1))
+    points3D = np.empty((num_points, 5))  # key error xyz
     count = 0
     with open(path, "r") as fid:
         while True:
@@ -137,19 +137,23 @@ def read_points3D_text(path):
             line = line.strip()
             if len(line) > 0 and line[0] != "#":
                 elems = line.split()
+                key = int(elems[0])
                 xyz = np.array(tuple(map(float, elems[1:4])))
                 rgb = np.array(tuple(map(int, elems[4:7])))
-                error = np.array(float(elems[7]))
-                if error > 2.0:
+                error = float(elems[7])
+                track_length = (len(elems) - 8) // 2
+                if error > 2.0 or track_length < 3:
                     continue
                 xyzs[count] = xyz
                 rgbs[count] = rgb
-                errors[count] = error
+                points3D[count][0] = key
+                points3D[count][1] = error
+                points3D[count][2:5] = xyz
                 count += 1
     xyzs = np.delete(xyzs, np.arange(count,num_points),axis=0)
     rgbs = np.delete(rgbs, np.arange(count,num_points),axis=0)
-    errors = np.delete(errors, np.arange(count,num_points),axis=0)
-    return xyzs, rgbs, errors
+    points3D = np.delete(points3D, np.arange(count,num_points),axis=0)
+    return xyzs, rgbs, points3D
 
 
 def read_points3D_binary(path_to_model_file):

@@ -44,6 +44,14 @@ def OptimizeGroupDepth(source, target, weight, prep, device="cuda"):
         target_masked.append(target_img[mask_img])
         weight_masked.append(weight_img[mask_img])
 
+    stacked_source = torch.cat(source_masked, dim=0).requires_grad_(True)
+    stacked_target = torch.cat(target_masked, dim=0).requires_grad_(True)
+    stacked_weight = torch.cat(weight_masked, dim=0).requires_grad_(False)
+    if stacked_source.numel() == 0:
+        print("Warning: no valid sparse depth constraints found, skipping depth alignment.")
+        refined_source = [src.clone() for src in source]
+        return refined_source, [1.0, 0.0], prep.weights_max_thresh
+
     scale = torch.ones(1).to(device).requires_grad_(True)
     shift = (torch.ones(1) * 0.5).to(device).requires_grad_(True)
 
@@ -54,10 +62,6 @@ def OptimizeGroupDepth(source, target, weight, prep, device="cuda"):
     iteration = 1
     loss_prev = 1e6
     loss_ema = 0.0
-
-    stacked_source = torch.cat(source_masked, dim=0).requires_grad_(True)
-    stacked_target = torch.cat(target_masked, dim=0).requires_grad_(True)
-    stacked_weight = torch.cat(weight_masked, dim=0).requires_grad_(False)
 
     while abs(loss_ema - loss_prev) > prep.align_loss:
         stacked_source_hat = scale * stacked_source + shift
