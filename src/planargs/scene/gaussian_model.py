@@ -524,7 +524,9 @@ class GaussianModel:
                 new_xyz = prior_planepoints[prior_indices, :]
                 gs_nearest = find_nearest(new_xyz, gs_points)
 
-            new_scaling = self.get_scaling[gs_nearest, :] / 5
+            # densification_postfix expects scaling in parameter space (log-space).
+            new_scaling_linear = self.get_scaling[gs_nearest, :] / 5
+            new_scaling = self.scaling_inverse_activation(torch.clamp_min(new_scaling_linear, 1e-12))
             new_rotation = self._rotation[gs_nearest, :]
             new_features_dc = self._features_dc[gs_nearest, :, :]
             new_features_rest = self._features_rest[gs_nearest, :, :]
