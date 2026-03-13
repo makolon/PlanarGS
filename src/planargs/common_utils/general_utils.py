@@ -133,16 +133,24 @@ def safe_state(silent):
     class F:
         def __init__(self, silent):
             self.silent = silent
+            self._wrapped = old_f
 
         def write(self, x):
             if not self.silent:
                 if x.endswith("\n"):
-                    old_f.write(x.replace("\n", " [{}]\n".format(str(datetime.now().strftime("%d/%m %H:%M:%S")))))
+                    return self._wrapped.write(x.replace("\n", " [{}]\n".format(str(datetime.now().strftime("%d/%m %H:%M:%S")))))
                 else:
-                    old_f.write(x)
+                    return self._wrapped.write(x)
+            return len(x)
 
         def flush(self):
-            old_f.flush()
+            self._wrapped.flush()
+
+        def isatty(self):
+            return getattr(self._wrapped, "isatty", lambda: False)()
+
+        def __getattr__(self, name):
+            return getattr(self._wrapped, name)
 
     sys.stdout = F(silent)
 
